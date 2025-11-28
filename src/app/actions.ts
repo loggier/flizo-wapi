@@ -75,13 +75,13 @@ export async function getInstances(): Promise<GetInstancesResult> {
   const apiInstances: ApiInstance[] = apiDataResult.data;
 
   const mergedInstances: Instance[] = localInstances.map(localInst => {
-    const apiInst = apiInstances.find(ai => ai.instance.instanceName === localInst.instanceName);
+    const apiInst = apiInstances.find(ai => ai.name === localInst.instanceName);
     
     let status: InstanceStatus = 'DISCONNECTED';
     let owner: string | undefined = undefined;
 
     if (apiInst) {
-      switch (apiInst.instance.status) {
+      switch (apiInst.connectionStatus) {
         case 'open':
           status = 'CONNECTED';
           break;
@@ -94,7 +94,7 @@ export async function getInstances(): Promise<GetInstancesResult> {
         default:
           status = 'DISCONNECTED';
       }
-      owner = apiInst.instance.owner;
+      owner = apiInst.ownerJid;
     }
     
     return {
@@ -268,7 +268,7 @@ export async function disconnectInstance(instanceName: string) {
 
   const result = await apiLogoutInstance(instanceName, instance.apiKey);
   if (result.success) {
-    revalidatePath('/');
+    onRefresh();
     return { success: true };
   }
   return { success: false, error: result.error };
@@ -316,4 +316,7 @@ export async function getApiHelp(feature: string) {
     console.error("Error de ayuda de GenAI:", error);
     return { success: false, error: "No se pudo obtener ayuda del asistente de IA." };
   }
+}
+function onRefresh() {
+  revalidatePath('/');
 }

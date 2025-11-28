@@ -90,7 +90,7 @@ export async function fetchQrCode(instanceName: string): Promise<{success: true,
     if (data.status === 'error' || !data.base64) {
        return { success: false, error: data.message || 'La API no devolvió un código QR. La instancia podría estar ya conectada.' };
     }
-    return { success: true, qr: `data:image/png;base64,${data.base64}`, instanceName: data.instance };
+    return { success: true, qr: data.base64, instanceName: data.instance };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'No se pudo obtener el código QR' };
   }

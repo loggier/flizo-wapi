@@ -11,10 +11,8 @@ export type Instance = {
 
 // Represents the structure from the /instance/fetchInstances endpoint
 export type ApiInstance = {
-  instance: {
-    instanceName: string;
-    status: 'open' | 'close' | 'connecting';
-    owner: string;
-  }
+  name: string;
+  connectionStatus: 'open' | 'close' | 'connecting';
+  ownerJid: string;
   // Add other fields from the API as needed
 }

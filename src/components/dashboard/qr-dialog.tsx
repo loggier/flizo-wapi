@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type PropsWithChildren } from 'react';
+import { useState, useEffect, type PropsWithChildren, useCallback } from 'react';
 import { getQrCode, checkInstanceStatus } from '@/app/actions';
 import {
   Dialog,
@@ -26,6 +26,8 @@ export function QrDialog({ instanceName, onConnected, children }: PropsWithChild
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const stableOnConnected = useCallback(onConnected, []);
+
   useEffect(() => {
     if (!open) {
       setQrCode(null);
@@ -36,42 +38,64 @@ export function QrDialog({ instanceName, onConnected, children }: PropsWithChild
     let isActive = true;
     let pollInterval: NodeJS.Timeout | undefined;
 
-    const fetchQr = async () => {
-      setLoading(true);
-      setError(null);
-      const result = await getQrCode(instanceName);
-      if (!isActive) return;
-
-      if (result.success) {
-        setQrCode(result.qr);
-        startPolling();
-      } else {
-        setError(result.error || 'No se pudo cargar el código QR.');
-        toast({
-          variant: 'destructive',
-          title: 'Error de Conexión',
-          description: result.error || 'No se pudo cargar el código QR. ¿Está la API de FlizoWapi en funcionamiento?',
-        });
-      }
-      setLoading(false);
-    };
-
     const startPolling = () => {
       pollInterval = setInterval(async () => {
         if (!isActive || !open) {
-            if(pollInterval) clearInterval(pollInterval);
-            return;
-        }
-        const statusResult = await checkInstanceStatus(instanceName);
-        if (statusResult.success && statusResult.status === 'CONNECTED') {
-          toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
           if (pollInterval) clearInterval(pollInterval);
-          setOpen(false); 
-          onConnected(); // Avisa a la página principal para que se refresque
+          return;
         }
-      }, 3000); 
+        try {
+          const statusResult = await checkInstanceStatus(instanceName);
+          if (isActive && statusResult.success && statusResult.status === 'CONNECTED') {
+            toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
+            if (pollInterval) clearInterval(pollInterval);
+            setOpen(false);
+            stableOnConnected();
+          }
+        } catch (pollError) {
+            // Error during polling is less critical, we can just log it
+            console.error("Polling error:", pollError);
+        }
+      }, 3000);
     };
-    
+
+    const fetchQr = async () => {
+      setLoading(true);
+      setError(null);
+      setQrCode(null);
+      try {
+        const result = await getQrCode(instanceName);
+        if (!isActive) return;
+
+        if (result.success && result.qr) {
+          setQrCode(result.qr);
+          startPolling();
+        } else {
+          const errorMessage = result.error || 'No se pudo cargar el código QR.';
+          setError(errorMessage);
+          toast({
+            variant: 'destructive',
+            title: 'Error de Conexión',
+            description: `${errorMessage} ¿Está la API de FlizoWapi en funcionamiento?`,
+          });
+        }
+      } catch (e) {
+        if (isActive) {
+          const errorMessage = e instanceof Error ? e.message : 'Ocurrió un error inesperado.';
+          setError(errorMessage);
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: errorMessage,
+          });
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchQr();
 
     return () => {
@@ -80,7 +104,7 @@ export function QrDialog({ instanceName, onConnected, children }: PropsWithChild
         clearInterval(pollInterval);
       }
     };
-  }, [open, instanceName, toast, onConnected]);
+  }, [open, instanceName, toast, stableOnConnected]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -94,7 +118,7 @@ export function QrDialog({ instanceName, onConnected, children }: PropsWithChild
         </DialogHeader>
         <div className="flex items-center justify-center p-4 min-h-[250px] bg-muted rounded-md">
           {loading && <Loader2 className="h-12 w-12 animate-spin text-primary" />}
-          {error && <p className="text-center text-destructive">{error}</p>}
+          {error && !loading && <p className="text-center text-destructive">{error}</p>}
           {qrCode && (
             <Image
               src={`data:image/png;base64,${qrCode}`}

@@ -6,7 +6,13 @@ export async function POST(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const instanceName = searchParams.get('instance');
   
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Cuerpo de la petición inválido (no es JSON).' }, { status: 400 });
+  }
+
   const { number, text } = body;
 
   if (!instanceName || !number || !text) {
@@ -38,6 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Correct payload structure according to Evolution API documentation
     const payload = {
         number,
         textMessage: {
@@ -54,9 +61,10 @@ export async function POST(request: NextRequest) {
     if (sendMessageResult.success) {
       return NextResponse.json({ success: true, data: sendMessageResult.data });
     } else {
+      // The error from apiSendMessage should be detailed now.
       return NextResponse.json(
         { success: false, error: sendMessageResult.error },
-        { status: 400 }
+        { status: 400 } // Propagate bad request from Evolution API
       );
     }
   } catch (error) {

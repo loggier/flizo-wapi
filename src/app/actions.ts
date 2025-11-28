@@ -3,7 +3,6 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
@@ -14,7 +13,7 @@ import {
   logoutInstance as apiLogoutInstance,
   deleteInstance as apiDeleteInstance,
 } from '@/lib/evolution';
-import { encrypt, decrypt } from '@/lib/session';
+import { encrypt } from '@/lib/session';
 import type { Instance } from '@/lib/definitions';
 import { getEvolutionApiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
 
@@ -108,37 +107,40 @@ const AuthFormSchema = z.object({
   password: z.string(),
 });
 
+type AuthState = {
+  success: boolean;
+  error?: string;
+  token?: string;
+};
+
 export async function authenticate(
-  prevState: { error: string | undefined },
+  prevState: AuthState,
   formData: FormData,
-) {
+): Promise<AuthState> {
   try {
     const { username, password } = AuthFormSchema.parse(Object.fromEntries(formData.entries()));
 
     if (username === process.env.AUTH_USER && password === process.env.AUTH_PASSWORD) {
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
       const session = await encrypt({ user: { name: username }, expires });
+      // The token is returned to the client to be stored in localStorage
       return { success: true, token: session };
     } else {
-      return { error: 'Credenciales inválidas.' };
+      return { success: false, error: 'Credenciales inválidas.' };
     }
   } catch (error) {
     if (error instanceof Error) {
-      return { error: error.message };
+      return { success: false, error: error.message };
     }
-    return { error: 'Ocurrió un error desconocido.' };
+    return { success: false, error: 'Ocurrió un error desconocido.' };
   }
 }
 
+// Session check is now client-side, this can be simplified or removed if not used server-side
 export async function getSession() {
-  const sessionCookie = cookies().get('session')?.value;
-  if (!sessionCookie) return null;
-  // This might fail if the secret changes or token is invalid
-  try {
-    return await decrypt(sessionCookie);
-  } catch (error) {
-    return null;
-  }
+  // This function would need to receive the token from the client if it were to
+  // perform server-side session checks. For now, it's a placeholder.
+  return null;
 }
 
 
@@ -213,8 +215,11 @@ export async function checkInstanceStatus(instanceName: string) {
     const result = await apiGetInstanceStatus(instanceName, instance.apiKey);
     if (result.success) {
         const newStatus = result.state === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED';
-        await updateInstance(instanceName, { status: newStatus });
-        revalidatePath('/');
+        if (instance.status !== newStatus) {
+          await updateInstance(instanceName, { status: newStatus });
+          // Only revalidate if the status has actually changed
+          revalidatePath('/');
+        }
         return { success: true, status: newStatus };
     }
     return { success: false, error: result.error };

@@ -36,7 +36,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
     }
 
     let isActive = true;
-    let pollInterval: NodeJS.Timeout;
+    let pollInterval: NodeJS.Timeout | undefined;
 
     const fetchQr = async () => {
       setLoading(true);
@@ -60,20 +60,27 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
 
     const startPolling = () => {
       pollInterval = setInterval(async () => {
+        // Stop polling if component is no longer active or dialog is closed
+        if (!isActive || !open) {
+            if(pollInterval) clearInterval(pollInterval);
+            return;
+        }
         const statusResult = await checkInstanceStatus(instanceName);
         if (statusResult.success && statusResult.status === 'CONNECTED') {
           toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
           setOpen(false); // This will trigger cleanup
         }
         // No need to handle error here, polling will continue
-      }, 3000); // Poll every 3 seconds
+      }, 5000); // Poll every 5 seconds
     };
     
     fetchQr();
 
     return () => {
       isActive = false;
-      clearInterval(pollInterval);
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
   }, [open, instanceName, router, toast]);
 

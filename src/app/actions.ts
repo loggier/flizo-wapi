@@ -149,7 +149,6 @@ export async function getSession() {
 export async function createInstance(formData: FormData) {
   const schema = z.object({
     instanceName: z.string().min(1, "El nombre es requerido"),
-    channel: z.string().optional(),
     number: z.string().optional(),
   });
   
@@ -159,7 +158,7 @@ export async function createInstance(formData: FormData) {
     return { success: false, error: parseResult.error.errors.map(e => e.message).join(', ') };
   }
   
-  const { instanceName, channel, number } = parseResult.data;
+  const { instanceName, number } = parseResult.data;
 
   // Generate a random token
   const token = randomBytes(16).toString('hex');
@@ -174,7 +173,7 @@ export async function createInstance(formData: FormData) {
        instanceName,
        apiKey: token,
        status: 'CREATED', // Start as created, user will need to connect
-       channel: channel || '',
+       channel: 'baileys',
        number: number || '',
      };
  
@@ -195,7 +194,6 @@ export async function getQrCode(instanceName: string) {
   const result = await apiFetchQrCode(instanceName);
   if (result.success) {
     await updateInstance(instanceName, { status: 'CONNECTING' });
-    revalidatePath('/');
     return { success: true, qr: result.qr, instanceName: result.instanceName };
   }
   return { success: false, error: result.error };
@@ -217,8 +215,6 @@ export async function checkInstanceStatus(instanceName: string) {
         const newStatus = result.state === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED';
         if (instance.status !== newStatus) {
           await updateInstance(instanceName, { status: newStatus });
-          // Only revalidate if the status has actually changed
-          revalidatePath('/');
         }
         return { success: true, status: newStatus };
     }

@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -77,19 +76,6 @@ export function CreateInstanceDialog() {
               placeholder="mi-bot-whatsapp"
               required
             />
-          </div>
-
-          <div>
-            <Label htmlFor="channel">Canal</Label>
-            <Select name="channel" defaultValue="evolution">
-                <SelectTrigger id="channel">
-                    <SelectValue placeholder="Selecciona un canal" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="evolution">EVOLUTION</SelectItem>
-                    <SelectItem value="baileys">Baileys (otro)</SelectItem>
-                </SelectContent>
-            </Select>
           </div>
           
           <div>

@@ -5,3 +5,14 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+secretEnvironmentVariables:
+  - secret: FLIZOWAPI_API_URL
+    key: FLIZOWAPI_API_URL
+  - secret: FLIZOWAPI_API_KEY
+    key: FLIZOWAPI_API_KEY
+  - secret: AUTH_USER
+    key: AUTH_USER
+  - secret: AUTH_PASSWORD
+    key: AUTH_PASSWORD
+  - secret: AUTH_SECRET
+    key: AUTH_SECRET

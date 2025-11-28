@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'next/navigation';
 
 function LoginButton() {
   const { pending } = useFormStatus();
@@ -21,17 +22,12 @@ function LoginButton() {
   );
 }
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams?: {
-    showDevInfo?: string;
-  };
-}) {
+export default function LoginPage() {
   const [errorMessage, dispatch] = useActionState(authenticate, undefined);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
-  const showDevInfo = searchParams?.showDevInfo === 'true' && process.env.NODE_ENV === 'development';
+  const showDevInfo = searchParams.get('showDevInfo') === 'true';
 
   useEffect(() => {
     if (errorMessage) {

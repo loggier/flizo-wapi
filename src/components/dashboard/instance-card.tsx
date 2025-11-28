@@ -26,10 +26,10 @@ import {
 type StatusVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
 const statusMap: Record<Instance['status'], { text: string; variant: StatusVariant; icon: React.ReactNode }> = {
-  CREATED: { text: 'Created', variant: 'outline', icon: <XCircle className="w-3 h-3 text-amber-500" /> },
-  CONNECTING: { text: 'Connecting', variant: 'secondary', icon: <Loader2 className="w-3 h-3 animate-spin text-blue-500" /> },
-  CONNECTED: { text: 'Connected', variant: 'default', icon: <Zap className="w-3 h-3 text-green-500" /> },
-  DISCONNECTED: { text: 'Disconnected', variant: 'destructive', icon: <XCircle className="w-3 h-3" /> },
+  CREATED: { text: 'Creado', variant: 'outline', icon: <XCircle className="w-3 h-3 text-amber-500" /> },
+  CONNECTING: { text: 'Conectando', variant: 'secondary', icon: <Loader2 className="w-3 h-3 animate-spin text-blue-500" /> },
+  CONNECTED: { text: 'Conectado', variant: 'default', icon: <Zap className="w-3 h-3 text-green-500" /> },
+  DISCONNECTED: { text: 'Desconectado', variant: 'destructive', icon: <XCircle className="w-3 h-3" /> },
 };
 
 export function InstanceCard({ instance }: { instance: Instance }) {
@@ -43,14 +43,14 @@ export function InstanceCard({ instance }: { instance: Instance }) {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(apiUrl);
-    toast({ description: 'API URL copied to clipboard.' });
+    toast({ description: 'URL de API copiada al portapapeles.' });
   };
 
   const handleDisconnect = () => {
     startDisconnectTransition(async () => {
       const result = await disconnectInstance(instance.instanceName);
       if (result.success) {
-        toast({ description: `Instance "${instance.instanceName}" disconnected.` });
+        toast({ description: `Instancia "${instance.instanceName}" desconectada.` });
       } else {
         toast({ variant: 'destructive', title: 'Error', description: result.error });
       }
@@ -61,7 +61,7 @@ export function InstanceCard({ instance }: { instance: Instance }) {
     startDeleteTransition(async () => {
       const result = await deleteInstance(instance.instanceName);
       if (result.success) {
-        toast({ description: `Instance "${instance.instanceName}" deleted.` });
+        toast({ description: `Instancia "${instance.instanceName}" eliminada.` });
       } else {
         toast({ variant: 'destructive', title: 'Error', description: result.error });
       }
@@ -80,11 +80,11 @@ export function InstanceCard({ instance }: { instance: Instance }) {
             {status.text}
           </Badge>
         </div>
-        <CardDescription>Manage your instance connection and settings.</CardDescription>
+        <CardDescription>Administra la conexión y configuración de tu instancia.</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div>
-          <Label htmlFor={`api-url-${instance.instanceName}`} className="text-xs">Your personal API URL</Label>
+          <Label htmlFor={`api-url-${instance.instanceName}`} className="text-xs">Tu URL de API personal</Label>
           <div className="flex items-center gap-2 mt-1">
             <Input id={`api-url-${instance.instanceName}`} type="text" readOnly value={apiUrl} className="text-xs h-9" />
             <Button variant="outline" size="icon" onClick={handleCopy}><Copy className="h-4 w-4" /></Button>
@@ -94,13 +94,13 @@ export function InstanceCard({ instance }: { instance: Instance }) {
       <CardFooter className="justify-end gap-2">
         {instance.status !== 'CONNECTED' && (
           <QrDialog instanceName={instance.instanceName}>
-            <Button variant="outline"><QrCode className="mr-2 h-4 w-4" />Connect</Button>
+            <Button variant="outline"><QrCode className="mr-2 h-4 w-4" />Conectar</Button>
           </QrDialog>
         )}
         {instance.status === 'CONNECTED' && (
           <Button variant="outline" onClick={handleDisconnect} disabled={isDisconnecting}>
             {isDisconnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <LogOut className="mr-2 h-4 w-4" />Disconnect
+            <LogOut className="mr-2 h-4 w-4" />Desconectar
           </Button>
         )}
         
@@ -112,14 +112,14 @@ export function InstanceCard({ instance }: { instance: Instance }) {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete the instance <strong className="font-mono">{instance.instanceName}</strong>. This action cannot be undone.
+                Esto eliminará permanentemente la instancia <strong className="font-mono">{instance.instanceName}</strong>. Esta acción no se puede deshacer.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Eliminar</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

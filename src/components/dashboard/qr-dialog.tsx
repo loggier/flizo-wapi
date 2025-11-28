@@ -48,7 +48,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         setQrCode(result.qr);
         startPolling();
       } else {
-        setError(result.error || 'Failed to load QR code.');
+        setError(result.error || 'No se pudo cargar el código QR.');
       }
       setLoading(false);
     };
@@ -57,7 +57,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
       pollInterval = setInterval(async () => {
         const statusResult = await checkInstanceStatus(instanceName);
         if (statusResult.success && statusResult.status === 'CONNECTED') {
-          toast({ title: 'Success', description: `Instance "${instanceName}" connected.` });
+          toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
           setOpen(false); // This will trigger cleanup
           router.refresh();
         }
@@ -77,9 +77,9 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Connect Instance: {instanceName}</DialogTitle>
+          <DialogTitle>Conectar Instancia: {instanceName}</DialogTitle>
           <DialogDescription>
-            Scan the QR code with your phone using the WhatsApp app.
+            Escanea el código QR con tu teléfono usando la aplicación WhatsApp.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-center p-4 min-h-[250px] bg-muted rounded-md">
@@ -88,7 +88,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
           {qrCode && (
             <Image
               src={`data:image/png;base64,${qrCode}`}
-              alt="WhatsApp QR Code"
+              alt="Código QR de WhatsApp"
               width={250}
               height={250}
               priority

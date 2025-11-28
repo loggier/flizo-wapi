@@ -16,7 +16,7 @@ function LoginButton() {
   return (
     <Button className="w-full" type="submit" aria-disabled={pending}>
       <LogIn className="mr-2 h-4 w-4" />
-      {pending ? 'Signing In...' : 'Sign In'}
+      {pending ? 'Iniciando Sesión...' : 'Iniciar Sesión'}
     </Button>
   );
 }
@@ -32,7 +32,7 @@ export default function LoginPage() {
     if (errorMessage) {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
+        title: 'Fallo de Inicio de Sesión',
         description: errorMessage,
       });
     }
@@ -42,22 +42,22 @@ export default function LoginPage() {
     <main className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-            <h1 className="text-3xl font-bold font-headline text-foreground">Evolution Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Connect and manage your API instances</p>
+            <h1 className="text-3xl font-bold font-headline text-foreground">Dashboard de Evolution</h1>
+            <p className="text-muted-foreground mt-2">Conecta y administra tus instancias de API</p>
         </div>
         <Card>
           <form action={dispatch}>
             <CardHeader>
-              <CardTitle>Secure Access</CardTitle>
-              <CardDescription>Enter your credentials to manage your instances.</CardDescription>
+              <CardTitle>Acceso Seguro</CardTitle>
+              <CardDescription>Ingresa tus credenciales para administrar tus instancias.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Usuario</Label>
                 <Input id="username" name="username" type="text" placeholder="admin" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <Input id="password" name="password" type="password" required />
               </div>
             </CardContent>
@@ -70,9 +70,9 @@ export default function LoginPage() {
         {isDevEnvironment && (
           <Alert>
             <Terminal className="h-4 w-4" />
-            <AlertTitle>Developer Information</AlertTitle>
+            <AlertTitle>Información para Desarrolladores</AlertTitle>
             <AlertDescription>
-              To get started, create a <code className="font-mono text-sm font-semibold">.env.local</code> file in the root directory and add the following variables:
+              Para comenzar, crea un archivo <code className="font-mono text-sm font-semibold">.env.local</code> en el directorio raíz y añade las siguientes variables:
               <pre className="mt-2 rounded-md bg-muted p-2 text-xs font-mono">
                 {`EVOLUTION_API_URL=http://your_api_ip:port\nEVOLUTION_API_KEY=your_global_api_key\nAUTH_USER=your_username\nAUTH_PASSWORD=your_password\nAUTH_SECRET=a_secure_random_string_32_chars`}
               </pre>

@@ -5,7 +5,7 @@ type EvolutionResponse = { success: true; data?: any; error?: never } | { succes
 
 async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<any> {
   if (!API_URL || !API_KEY) {
-    throw new Error('Evolution API URL or key is not configured in environment variables.');
+    throw new Error('La URL o clave de la API de Evolution no está configurada en las variables de entorno.');
   }
 
   const url = `${API_URL}${endpoint}`;
@@ -21,7 +21,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
 
   if (!response.ok && response.status !== 404 && response.status !== 422) { // 422 is used for "instance not found" sometimes
       const errorText = await response.text();
-      throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`);
+      throw new Error(`Error de API (${response.status}): ${errorText || response.statusText}`);
   }
 
   const contentType = response.headers.get('content-type');
@@ -42,7 +42,7 @@ export async function createInstance(instanceName: string): Promise<EvolutionRes
     });
     return { success: true, data };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to create instance' };
+    return { success: false, error: error instanceof Error ? error.message : 'No se pudo crear la instancia' };
   }
 }
 
@@ -50,11 +50,11 @@ export async function fetchQrCode(instanceName: string): Promise<{success: true,
   try {
     const data = await apiFetch(`/instance/connect/${instanceName}`);
     if (data.status === 'error') {
-       return { success: false, error: data.message || 'Failed to fetch QR code.' };
+       return { success: false, error: data.message || 'No se pudo obtener el código QR.' };
     }
     return { success: true, qr: data.base64, instanceName: data.instance };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch QR code' };
+    return { success: false, error: error instanceof Error ? error.message : 'No se pudo obtener el código QR' };
   }
 }
 
@@ -63,7 +63,7 @@ export async function getInstanceStatus(instanceName: string): Promise<{success:
         const data = await apiFetch(`/instance/connectionState/${instanceName}`);
         return { success: true, state: data.state };
     } catch(error) {
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to get instance status' };
+        return { success: false, error: error instanceof Error ? error.message : 'No se pudo obtener el estado de la instancia' };
     }
 }
 
@@ -72,7 +72,7 @@ export async function logoutInstance(instanceName: string): Promise<EvolutionRes
     await apiFetch(`/instance/logout/${instanceName}`, { method: 'DELETE' });
     return { success: true };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to disconnect instance' };
+    return { success: false, error: error instanceof Error ? error.message : 'No se pudo desconectar la instancia' };
   }
 }
 
@@ -81,7 +81,7 @@ export async function deleteInstance(instanceName: string): Promise<EvolutionRes
     await apiFetch(`/instance/delete/${instanceName}`, { method: 'DELETE' });
     return { success: true };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete instance from API' };
+    return { success: false, error: error instanceof Error ? error.message : 'No se pudo eliminar la instancia de la API' };
   }
 }
 
@@ -102,6 +102,6 @@ export async function sendMessage(instanceName: string, number: string, text: st
         });
         return { success: true, data };
     } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to send message' };
+        return { success: false, error: error instanceof Error ? error.message : 'No se pudo enviar el mensaje' };
     }
 }

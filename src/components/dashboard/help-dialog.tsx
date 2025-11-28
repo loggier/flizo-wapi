@@ -35,7 +35,7 @@ export function HelpDialog() {
     if (result.success) {
       setHelpText(result.helpText);
     } else {
-      setError(result.error || 'An unexpected error occurred.');
+      setError(result.error || 'Ocurrió un error inesperado.');
     }
     setIsLoading(false);
   };
@@ -45,23 +45,23 @@ export function HelpDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <HelpCircle className="mr-2 h-4 w-4" />
-          Help
+          Ayuda
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="text-primary" />
-            API Feature Assistant
+            Asistente de Features de API
           </DialogTitle>
           <DialogDescription>
-            Ask for help about any Evolution API feature (e.g., "send an image", "create a group").
+            Pide ayuda sobre cualquier feature de la API de Evolution (ej., "enviar una imagen", "crear un grupo").
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <Input name="feature" placeholder="How do I send a button message?" disabled={isLoading} required />
+          <Input name="feature" placeholder="¿Cómo envío un mensaje con botones?" disabled={isLoading} required />
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ask'}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Preguntar'}
           </Button>
         </form>
         {(isLoading || helpText || error) && (

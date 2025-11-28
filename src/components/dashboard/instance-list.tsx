@@ -15,9 +15,9 @@ export function InstanceList({ initialInstances, error }: InstanceListProps) {
     return (
         <Alert variant="destructive" className="max-w-2xl mx-auto">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error Loading Data</AlertTitle>
+          <AlertTitle>Error al Cargar Datos</AlertTitle>
           <AlertDescription>
-            Could not load instance data. Please check the console for details.
+            No se pudieron cargar los datos de la instancia. Por favor, revisa la consola para más detalles.
             <p className="mt-2 font-mono text-xs">{error}</p>
           </AlertDescription>
         </Alert>
@@ -28,8 +28,8 @@ export function InstanceList({ initialInstances, error }: InstanceListProps) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
         <ServerOff className="w-16 h-16 text-muted-foreground" />
-        <h2 className="mt-6 text-2xl font-semibold font-headline">No Instances Found</h2>
-        <p className="mt-2 text-muted-foreground">Get started by creating your first Evolution API instance.</p>
+        <h2 className="mt-6 text-2xl font-semibold font-headline">No se Encontraron Instancias</h2>
+        <p className="mt-2 text-muted-foreground">Comienza creando tu primera instancia de la API de Evolution.</p>
       </div>
     );
   }

@@ -37,13 +37,13 @@ export async function authenticate(
       cookies().set('session', session, { expires, httpOnly: true });
       
     } else {
-      return 'Invalid credentials.';
+      return 'Credenciales inválidas.';
     }
   } catch (error) {
     if (error instanceof Error) {
       return error.message;
     }
-    return 'An unknown error occurred.';
+    return 'Ocurrió un error desconocido.';
   }
   redirect('/');
 }
@@ -61,7 +61,7 @@ export async function createInstance(formData: FormData) {
   const parseResult = schema.safeParse({ instanceName: formData.get('instanceName') });
 
   if (!parseResult.success) {
-    return { success: false, error: 'Invalid instance name.' };
+    return { success: false, error: 'Nombre de instancia inválido.' };
   }
   
   const { instanceName } = parseResult.data;
@@ -69,7 +69,7 @@ export async function createInstance(formData: FormData) {
   // Check if instance already exists
   const existingInstancesResult = await getInstances();
   if (existingInstancesResult.success && existingInstancesResult.instances.some(inst => inst.instanceName === instanceName)) {
-    return { success: false, error: 'An instance with this name already exists.' };
+    return { success: false, error: 'Ya existe una instancia con este nombre.' };
   }
 
   const result = await apiCreateInstance(instanceName);
@@ -133,8 +133,8 @@ export async function deleteInstance(instanceName: string) {
 
   if (!apiDeleteResult.success) {
     // Log the error but consider the primary operation (file deletion) a success for the UI
-    console.error(`API deletion failed for ${instanceName}: ${apiDeleteResult.error}`);
-    return { success: true, warning: 'Instance removed from dashboard, but failed to delete from Evolution API.' };
+    console.error(`La eliminación de la API falló para ${instanceName}: ${apiDeleteResult.error}`);
+    return { success: true, warning: 'Instancia eliminada del dashboard, pero no se pudo eliminar de la API de Evolution.' };
   }
 
   return { success: true };
@@ -145,14 +145,14 @@ export async function deleteInstance(instanceName: string) {
 
 export async function getApiHelp(feature: string) {
   if (!feature) {
-    return { success: false, error: "Please provide a feature to get help with." };
+    return { success: false, error: "Por favor, proporciona una feature para obtener ayuda." };
   }
 
   try {
     const result = await genAiGetHelp({ feature });
     return { success: true, helpText: result.helpText };
   } catch (error) {
-    console.error("GenAI help error:", error);
-    return { success: false, error: "Failed to get help from AI assistant." };
+    console.error("Error de ayuda de GenAI:", error);
+    return { success: false, error: "No se pudo obtener ayuda del asistente de IA." };
   }
 }

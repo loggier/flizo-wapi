@@ -7,7 +7,7 @@ const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: any) {
   if (!secretKey) {
-    throw new Error('AUTH_SECRET is not set in environment variables.');
+    throw new Error('AUTH_SECRET no está configurado en las variables de entorno.');
   }
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -18,7 +18,7 @@ export async function encrypt(payload: any) {
 
 export async function decrypt(input: string): Promise<any> {
   if (!secretKey) {
-    throw new Error('AUTH_SECRET is not set in environment variables.');
+    throw new Error('AUTH_SECRET no está configurado en las variables de entorno.');
   }
   try {
     const { payload } = await jwtVerify(input, key, {

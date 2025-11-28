@@ -20,7 +20,7 @@ async function readData(): Promise<GetInstancesResult> {
       return { success: true, instances: [] };
     }
     console.error('Failed to read instances data:', error);
-    return { success: false, error: 'Failed to read instances data.' };
+    return { success: false, error: 'No se pudieron leer los datos de las instancias.' };
   }
 }
 
@@ -31,7 +31,7 @@ async function writeData(data: Instance[]): Promise<MutateInstanceResult> {
     return { success: true };
   } catch (error) {
     console.error('Failed to write instances data:', error);
-    return { success: false, error: 'Failed to write instances data.' };
+    return { success: false, error: 'No se pudieron escribir los datos de las instancias.' };
   }
 }
 
@@ -45,7 +45,7 @@ export async function addInstance(newInstance: Instance): Promise<MutateInstance
 
   const instances = readResult.instances;
   if (instances.some(inst => inst.instanceName === newInstance.instanceName)) {
-    return { success: false, error: 'Instance already exists.' };
+    return { success: false, error: 'La instancia ya existe.' };
   }
   
   instances.push(newInstance);
@@ -60,7 +60,7 @@ export async function updateInstance(instanceName: string, updateData: Partial<I
   const instanceIndex = instances.findIndex(inst => inst.instanceName === instanceName);
 
   if (instanceIndex === -1) {
-    return { success: false, error: 'Instance not found.' };
+    return { success: false, error: 'Instancia no encontrada.' };
   }
 
   instances[instanceIndex] = { ...instances[instanceIndex], ...updateData };

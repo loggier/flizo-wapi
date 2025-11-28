@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   if (!instanceName || !apiKey || !number || !text) {
     return NextResponse.json(
-      { success: false, error: 'Missing required parameters: instance, key, number, message' },
+      { success: false, error: 'Faltan parámetros requeridos: instance, key, number, message' },
       { status: 400 }
     );
   }
@@ -26,21 +26,21 @@ export async function GET(request: NextRequest) {
 
     if (!instance) {
       return NextResponse.json(
-        { success: false, error: 'Instance not found' },
+        { success: false, error: 'Instancia no encontrada' },
         { status: 404 }
       );
     }
 
     if (instance.apiKey !== apiKey) {
       return NextResponse.json(
-        { success: false, error: 'Invalid API key' },
+        { success: false, error: 'Clave de API inválida' },
         { status: 401 }
       );
     }
     
     if (instance.status !== 'CONNECTED') {
       return NextResponse.json(
-        { success: false, error: 'Instance is not connected' },
+        { success: false, error: 'La instancia no está conectada' },
         { status: 409 }
       );
     }
@@ -56,8 +56,8 @@ export async function GET(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Send message API error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An internal server error occurred';
+    console.error('Error en la API de envío de mensajes:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error interno del servidor';
     return NextResponse.json(
       { success: false, error: errorMessage },
       { status: 500 }

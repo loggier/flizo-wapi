@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getInstances } from '@/lib/instances';
+import { getInstances } from '@/app/actions';
 import { Header } from '@/components/dashboard/header';
 import { InstanceList } from '@/components/dashboard/instance-list';
 import Loading from './loading';
@@ -38,13 +38,19 @@ export default function DashboardPage() {
     }
 
     fetchInstances();
+    
+    // Set up an interval to refresh the instances every 5 seconds
+    const intervalId = setInterval(fetchInstances, 5000);
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
   }, [isAuthenticated]);
   
   if (!isAuthenticated) {
     return <Loading />;
   }
 
-  if (isLoading) {
+  if (isLoading && instancesResult.instances?.length === 0) {
     return <Loading />;
   }
 

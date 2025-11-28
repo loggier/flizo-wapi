@@ -55,7 +55,7 @@ export default function LoginPage() {
     <main className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-            <h1 className="text-3xl font-bold font-headline text-foreground">Dashboard de Evolution</h1>
+            <h1 className="text-3xl font-bold font-headline text-foreground">Dashboard de FlizoWapi</h1>
             <p className="text-muted-foreground mt-2">Conecta y administra tus instancias de API</p>
         </div>
         <Card>
@@ -87,7 +87,7 @@ export default function LoginPage() {
             <AlertDescription>
               Para comenzar, crea un archivo <code className="font-mono text-sm font-semibold">.env.local</code> en el directorio raíz y añade las siguientes variables:
               <pre className="mt-2 rounded-md bg-muted p-2 text-xs font-mono">
-                {`EVOLUTION_API_URL=http://your_api_ip:port\nEVOLUTION_API_KEY=your_global_api_key\nAUTH_USER=your_username\nAUTH_PASSWORD=your_password\nAUTH_SECRET=a_secure_random_string_32_chars`}
+                {`FLIZOWAPI_API_URL=http://your_api_ip:port\nFLIZOWAPI_API_KEY=your_global_api_key\nAUTH_USER=your_username\nAUTH_PASSWORD=your_password\nAUTH_SECRET=a_secure_random_string_32_chars`}
               </pre>
             </AlertDescription>
           </Alert>

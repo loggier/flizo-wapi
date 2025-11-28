@@ -50,7 +50,7 @@ export function QrDialog({ instanceName, onConnected, children }: PropsWithChild
         toast({
           variant: 'destructive',
           title: 'Error de Conexión',
-          description: result.error || 'No se pudo cargar el código QR. ¿Está la API de Evolution en funcionamiento?',
+          description: result.error || 'No se pudo cargar el código QR. ¿Está la API de FlizoWapi en funcionamiento?',
         });
       }
       setLoading(false);

@@ -15,7 +15,7 @@ import {
 } from '@/lib/evolution';
 import { encrypt } from '@/lib/session';
 import type { Instance, ApiInstance, InstanceStatus } from '@/lib/definitions';
-import { getEvolutionApiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
+import { getFlizoWapiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
 
 
 // --- FILE SYSTEM ACTIONS FOR INSTANCES ---
@@ -52,7 +52,7 @@ async function writeData(data: Omit<Instance, 'status' | 'owner'| 'profileName' 
   }
 }
 
-// Fetches live data from Evolution API and merges it with local data
+// Fetches live data from FlizoWapi API and merges it with local data
 export async function getInstances(): Promise<GetInstancesResult> {
   const localDataResult = await readData();
   const apiDataResult = await apiFetchInstances();
@@ -226,7 +226,7 @@ export async function createInstance(formData: FormData) {
      return { success: true, instance: { ...newInstance, status: 'CREATED' } };
 
   } catch (error) {
-      let errorMessage = 'No se pudo crear la instancia en la API de Evolution.';
+      let errorMessage = 'No se pudo crear la instancia en la API de FlizoWapi.';
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -302,10 +302,10 @@ export async function deleteInstance(instanceName: string) {
       const apiDeleteResult = await apiDeleteInstance(instanceName, apiKey);
       if (!apiDeleteResult.success) {
         console.error(`La eliminación de la API falló para ${instanceName}: ${apiDeleteResult.error}`);
-        return { success: true, warning: 'Instancia eliminada del dashboard, pero no se pudo eliminar de la API de Evolution.' };
+        return { success: true, warning: 'Instancia eliminada del dashboard, pero no se pudo eliminar de la API de FlizoWapi.' };
       }
   } else {
-    console.warn(`No se encontró API key para ${instanceName}, no se eliminará de la API de Evolution.`);
+    console.warn(`No se encontró API key para ${instanceName}, no se eliminará de la API de FlizoWapi.`);
   }
 
   return { success: true };

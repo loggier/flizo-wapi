@@ -55,7 +55,7 @@ export function HelpDialog() {
             Asistente de Features de API
           </DialogTitle>
           <DialogDescription>
-            Pide ayuda sobre cualquier feature de la API de Evolution (ej., "enviar una imagen", "crear un grupo").
+            Pide ayuda sobre cualquier feature de la API de FlizoWapi (ej., "enviar una imagen", "crear un grupo").
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex items-center gap-2">

@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Dashboard de Evolution',
-  description: 'Administra tus instancias de la API de Evolution',
+  title: 'Dashboard de FlizoWapi',
+  description: 'Administra tus instancias de la API de FlizoWapi',
 };
 
 export default function RootLayout({

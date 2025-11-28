@@ -1,15 +1,15 @@
 'use server';
 
-// The API_URL is the base URL for the Evolution API instance.
-const API_URL = process.env.EVOLUTION_API_URL;
+// The API_URL is the base URL for the FlizoWapi API instance.
+const API_URL = process.env.FLIZOWAPI_API_URL;
 // The GLOBAL_API_KEY is used for instance management (create, connect).
-const GLOBAL_API_KEY = process.env.EVOLUTION_API_KEY;
+const GLOBAL_API_KEY = process.env.FLIZOWAPI_API_KEY;
 
 type EvolutionResponse = { success: true; data?: any; error?: never } | { success: false; error: string; data?: never };
 
 async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<any> {
   if (!API_URL) {
-    throw new Error('La URL de la API de Evolution no está configurada en las variables de entorno.');
+    throw new Error('La URL de la API de FlizoWapi no está configurada en las variables de entorno.');
   }
 
   const url = `${API_URL}${endpoint}`;

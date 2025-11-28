@@ -1,34 +1,34 @@
 'use server';
 /**
- * @fileOverview Provides helpful prompts and guidance on using Evolution API features.
+ * @fileOverview Provides helpful prompts and guidance on using FlizoWapi API features.
  *
- * - getEvolutionApiHelp - A function that provides guidance on Evolution API features.
- * - GetEvolutionApiHelpInput - The input type for the getEvolutionApiHelp function.
- * - GetEvolutionApiHelpOutput - The return type for the getEvolutionApiHelp function.
+ * - getFlizoWapiHelp - A function that provides guidance on FlizoWapi API features.
+ * - GetFlizoWapiHelpInput - The input type for the getFlizoWapiHelp function.
+ * - GetFlizoWapiHelpOutput - The return type for the getFlizoWapiHelp function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GetEvolutionApiHelpInputSchema = z.object({
-  feature: z.string().describe('The specific Evolution API feature to get help with.'),
+const GetFlizoWapiHelpInputSchema = z.object({
+  feature: z.string().describe('The specific FlizoWapi API feature to get help with.'),
 });
-export type GetEvolutionApiHelpInput = z.infer<typeof GetEvolutionApiHelpInputSchema>;
+export type GetFlizoWapiHelpInput = z.infer<typeof GetFlizoWapiHelpInputSchema>;
 
-const GetEvolutionApiHelpOutputSchema = z.object({
-  helpText: z.string().describe('Detailed guidance and examples for the specified Evolution API feature.'),
+const GetFlizoWapiHelpOutputSchema = z.object({
+  helpText: z.string().describe('Detailed guidance and examples for the specified FlizoWapi API feature.'),
 });
-export type GetEvolutionApiHelpOutput = z.infer<typeof GetEvolutionApiHelpOutputSchema>;
+export type GetFlizoWapiHelpOutput = z.infer<typeof GetFlizoWapiHelpOutputSchema>;
 
-export async function getEvolutionApiHelp(input: GetEvolutionApiHelpInput): Promise<GetEvolutionApiHelpOutput> {
-  return evolutionApiHelpFlow(input);
+export async function getFlizoWapiHelp(input: GetFlizoWapiHelpInput): Promise<GetFlizoWapiHelpOutput> {
+  return flizoWapiHelpFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'evolutionApiHelpPrompt',
-  input: {schema: GetEvolutionApiHelpInputSchema},
-  output: {schema: GetEvolutionApiHelpOutputSchema},
-  prompt: `You are an expert in Evolution API and provide guidance to users on how to integrate and use its features.
+  name: 'flizoWapiHelpPrompt',
+  input: {schema: GetFlizoWapiHelpInputSchema},
+  output: {schema: GetFlizoWapiHelpOutputSchema},
+  prompt: `You are an expert in FlizoWapi API and provide guidance to users on how to integrate and use its features.
 
   Provide detailed instructions, code examples, and best practices for the specified feature.
 
@@ -36,11 +36,11 @@ const prompt = ai.definePrompt({
   `,
 });
 
-const evolutionApiHelpFlow = ai.defineFlow(
+const flizoWapiHelpFlow = ai.defineFlow(
   {
-    name: 'evolutionApiHelpFlow',
-    inputSchema: GetEvolutionApiHelpInputSchema,
-    outputSchema: GetEvolutionApiHelpOutputSchema,
+    name: 'flizoWapiHelpFlow',
+    inputSchema: GetFlizoWapiHelpInputSchema,
+    outputSchema: GetFlizoWapiHelpOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);

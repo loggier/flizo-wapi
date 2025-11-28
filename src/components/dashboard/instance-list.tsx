@@ -38,7 +38,7 @@ export function InstanceList({ initialInstances, error, onRefresh }: InstanceLis
       <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
         <ServerOff className="w-16 h-16 text-muted-foreground" />
         <h2 className="mt-6 text-2xl font-semibold font-headline">No se Encontraron Instancias</h2>
-        <p className="mt-2 text-muted-foreground">Comienza creando tu primera instancia de la API de Evolution.</p>
+        <p className="mt-2 text-muted-foreground">Comienza creando tu primera instancia de la API de FlizoWapi.</p>
       </div>
     );
   }

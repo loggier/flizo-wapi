@@ -64,7 +64,7 @@ export async function createInstance(instanceName: string, token: string, number
     const payload: any = {
       instanceName,
       token,
-      qrcode: false,
+      qrcode: true,
       integration: "WHATSAPP-BAILEYS",
     };
     if (number) {

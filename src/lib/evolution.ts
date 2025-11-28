@@ -1,11 +1,13 @@
+// IMPORTANT: The global API_KEY is used for instance management (create, delete).
+// Instance-specific operations might need their own keys if the setup is different.
 const API_URL = process.env.EVOLUTION_API_URL;
-const API_KEY = process.env.EVOLUTION_API_KEY;
+const GLOBAL_API_KEY = process.env.EVOLUTION_API_KEY;
 
 type EvolutionResponse = { success: true; data?: any; error?: never } | { success: false; error: string; data?: never };
 
 async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<any> {
-  if (!API_URL || !API_KEY) {
-    throw new Error('La URL o clave de la API de Evolution no está configurada en las variables de entorno.');
+  if (!API_URL) {
+    throw new Error('La URL de la API de Evolution no está configurada en las variables de entorno.');
   }
 
   const url = `${API_URL}${endpoint}`;
@@ -14,30 +16,28 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'apikey': API_KEY,
-      ...options.headers,
+      ...options.headers, // apikey should be provided in the calling function
     },
   });
 
   const contentType = response.headers.get('content-type');
   const isJson = contentType && contentType.includes('application/json');
 
-  // Handle non-successful responses
   if (!response.ok) {
     let errorMessage = `Error de API (${response.status})`;
     if (isJson) {
       try {
         const errorJson = await response.json();
-        // Evolution API often returns errors in a "message" property, or an array of messages.
         if (errorJson.message) {
             errorMessage = Array.isArray(errorJson.message) ? errorJson.message.join(', ') : errorJson.message;
         } else if (errorJson.error) {
             errorMessage = errorJson.error;
+        } else if (errorJson.response?.message) {
+             errorMessage = errorJson.response.message;
         } else {
             errorMessage = JSON.stringify(errorJson);
         }
       } catch (e) {
-        // Not a JSON response, fall back to text.
         errorMessage = await response.text();
       }
     } else {
@@ -47,7 +47,6 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
     throw new Error(errorMessage);
   }
   
-  // Handle empty successful responses (e.g., DELETE returning 204 No Content)
   if (response.status === 204 || !contentType) {
     return null;
   }
@@ -58,10 +57,12 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
   return response.text();
 }
 
+// Note: createInstance is now managed manually via the form, so this is not used.
 export async function createInstance(instanceName: string): Promise<EvolutionResponse> {
   try {
     const data = await apiFetch('/instance/create', {
       method: 'POST',
+      headers: { 'apikey': GLOBAL_API_KEY! },
       body: JSON.stringify({
         instanceName,
         qrcode: true,
@@ -75,7 +76,9 @@ export async function createInstance(instanceName: string): Promise<EvolutionRes
 
 export async function fetchQrCode(instanceName: string): Promise<{success: true, qr: string, instanceName: string} | {success: false, error: string}> {
   try {
-    const data = await apiFetch(`/instance/connect/${instanceName}`);
+    const data = await apiFetch(`/instance/connect/${instanceName}`, {
+        headers: { 'apikey': GLOBAL_API_KEY! }
+    });
     if (data.status === 'error') {
        return { success: false, error: data.message || 'No se pudo obtener el código QR.' };
     }
@@ -85,9 +88,11 @@ export async function fetchQrCode(instanceName: string): Promise<{success: true,
   }
 }
 
-export async function getInstanceStatus(instanceName: string): Promise<{success: true, state: string} | {success: false, error: string}> {
+export async function getInstanceStatus(instanceName: string, instanceApiKey: string): Promise<{success: true, state: string} | {success: false, error: string}> {
     try {
-        const data = await apiFetch(`/instance/connectionState/${instanceName}`);
+        const data = await apiFetch(`/instance/connectionState/${instanceName}`, {
+            headers: { 'apikey': instanceApiKey }
+        });
         return { success: true, state: data.state };
     } catch(error) {
         return { success: false, error: error instanceof Error ? error.message : 'No se pudo obtener el estado de la instancia' };
@@ -96,7 +101,10 @@ export async function getInstanceStatus(instanceName: string): Promise<{success:
 
 export async function logoutInstance(instanceName: string): Promise<EvolutionResponse> {
   try {
-    await apiFetch(`/instance/logout/${instanceName}`, { method: 'DELETE' });
+    await apiFetch(`/instance/logout/${instanceName}`, { 
+        method: 'DELETE',
+        headers: { 'apikey': GLOBAL_API_KEY! }
+    });
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'No se pudo desconectar la instancia' };
@@ -105,7 +113,10 @@ export async function logoutInstance(instanceName: string): Promise<EvolutionRes
 
 export async function deleteInstance(instanceName: string): Promise<EvolutionResponse> {
   try {
-    await apiFetch(`/instance/delete/${instanceName}`, { method: 'DELETE' });
+    await apiFetch(`/instance/delete/${instanceName}`, { 
+        method: 'DELETE',
+        headers: { 'apikey': GLOBAL_API_KEY! }
+    });
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'No se pudo eliminar la instancia de la API' };
@@ -116,6 +127,7 @@ export async function sendMessage(instanceName: string, number: string, text: st
     try {
         const data = await apiFetch(`/message/sendText/${instanceName}`, {
             method: 'POST',
+            headers: { 'apikey': GLOBAL_API_KEY! }, // Should use instance-specific key
             body: JSON.stringify({
                 number,
                 options: {

@@ -57,14 +57,20 @@ export async function logout() {
 // --- INSTANCE ACTIONS ---
 
 export async function createInstance(formData: FormData) {
-  const schema = z.object({ instanceName: z.string().min(3).max(50) });
-  const parseResult = schema.safeParse({ instanceName: formData.get('instanceName') });
+  const schema = z.object({
+    instanceName: z.string().min(1, "El nombre es requerido"),
+    apiKey: z.string().min(1, "El token es requerido"),
+    channel: z.string().optional(),
+    number: z.string().optional(),
+  });
+  
+  const parseResult = schema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!parseResult.success) {
-    return { success: false, error: 'Nombre de instancia inválido.' };
+    return { success: false, error: parseResult.error.errors.map(e => e.message).join(', ') };
   }
   
-  const { instanceName } = parseResult.data;
+  const { instanceName, apiKey, channel, number } = parseResult.data;
 
   // Check if instance already exists
   const existingInstancesResult = await getInstances();
@@ -72,19 +78,32 @@ export async function createInstance(formData: FormData) {
     return { success: false, error: 'Ya existe una instancia con este nombre.' };
   }
 
-  const result = await apiCreateInstance(instanceName);
+  // NOTE: We are no longer calling the Evolution API to create the instance here.
+  // We assume the instance is pre-configured and we are just adding it to the dashboard.
+  // We can try to get the status to see if it's a valid instance.
+  
+  try {
+     // Let's check if we can get a connection state. This validates the instance and API key.
+     await apiGetInstanceStatus(instanceName, apiKey);
 
-  if (result.success) {
-    const newInstance: Instance = {
-      instanceName: result.data.instance.instanceName,
-      apiKey: result.data.hash.apikey,
-      status: 'CREATED',
-    };
-    await addInstance(newInstance);
-    revalidatePath('/');
-    return { success: true, instance: newInstance };
-  } else {
-    return { success: false, error: result.error };
+     const newInstance: Instance = {
+       instanceName,
+       apiKey,
+       status: 'DISCONNECTED', // Start as disconnected, user will need to connect
+       channel: channel || '',
+       number: number || '',
+     };
+ 
+     await addInstance(newInstance);
+     revalidatePath('/');
+     return { success: true, instance: newInstance };
+
+  } catch (error) {
+      let errorMessage = 'No se pudo verificar la instancia con la API de Evolution. Revisa el nombre y el token.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
   }
 }
 
@@ -99,7 +118,17 @@ export async function getQrCode(instanceName: string) {
 }
 
 export async function checkInstanceStatus(instanceName: string) {
-    const result = await apiGetInstanceStatus(instanceName);
+    // We need to retrieve the apiKey for the instance to check its status
+    const instancesResult = await getInstances();
+    if (!instancesResult.success) {
+      return { success: false, error: "No se pudieron obtener las instancias locales." };
+    }
+    const instance = instancesResult.instances.find(inst => inst.instanceName === instanceName);
+    if (!instance) {
+      return { success: false, error: "Instancia no encontrada localmente." };
+    }
+
+    const result = await apiGetInstanceStatus(instanceName, instance.apiKey);
     if (result.success) {
         const newStatus = result.state === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED';
         await updateInstance(instanceName, { status: newStatus });

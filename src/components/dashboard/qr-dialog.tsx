@@ -49,6 +49,11 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         startPolling();
       } else {
         setError(result.error || 'No se pudo cargar el código QR.');
+        toast({
+          variant: 'destructive',
+          title: 'Error de Conexión',
+          description: result.error || 'No se pudo cargar el código QR. ¿Está la API de Evolution en funcionamiento?',
+        });
       }
       setLoading(false);
     };
@@ -59,8 +64,8 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         if (statusResult.success && statusResult.status === 'CONNECTED') {
           toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
           setOpen(false); // This will trigger cleanup
-          router.refresh();
         }
+        // No need to handle error here, polling will continue
       }, 3000); // Poll every 3 seconds
     };
     

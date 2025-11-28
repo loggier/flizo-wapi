@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useTransition } from 'react';
+import { useState, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { createInstance } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -64,25 +65,52 @@ export function CreateInstanceDialog() {
         <DialogHeader>
           <DialogTitle>Crear Nueva Instancia</DialogTitle>
           <DialogDescription>
-            Ingresa un nombre para tu nueva instancia de la API de Evolution.
+            Completa los detalles de tu nueva instancia.
           </DialogDescription>
         </DialogHeader>
-        <form ref={formRef} action={handleCreateInstance}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="instanceName" className="text-right">
-                Nombre
-              </Label>
-              <Input
-                id="instanceName"
-                name="instanceName"
-                className="col-span-3"
-                placeholder="mi-bot-whatsapp"
-                required
-                minLength={3}
-              />
-            </div>
+        <form ref={formRef} action={handleCreateInstance} className="space-y-4">
+          <div>
+            <Label htmlFor="instanceName">Nombre *</Label>
+            <Input
+              id="instanceName"
+              name="instanceName"
+              placeholder="mi-bot-whatsapp"
+              required
+            />
           </div>
+
+          <div>
+            <Label htmlFor="channel">Canal</Label>
+            <Select name="channel" defaultValue="baileys">
+                <SelectTrigger id="channel">
+                    <SelectValue placeholder="Selecciona un canal" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="baileys">Baileys</SelectItem>
+                    <SelectItem value="other">Otro</SelectItem>
+                </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="apiKey">Token *</Label>
+            <Input
+              id="apiKey"
+              name="apiKey"
+              placeholder="Tu token de la instancia"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="number">Número</Label>
+            <Input
+              id="number"
+              name="number"
+              placeholder="Número de teléfono asociado"
+            />
+          </div>
+
           <DialogFooter>
             <SubmitButton />
           </DialogFooter>

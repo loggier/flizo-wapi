@@ -47,10 +47,13 @@ export function SendMessageDialog({ instance, children }: PropsWithChildren<Send
     const message = formData.get('message') as string;
     
     try {
-        const response = await fetch(`/api/sendMessage?instance=${instance.instanceName}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ number: number, text: message }),
+        const url = new URL('/api/sendMessage', window.location.origin);
+        url.searchParams.append('instance', instance.instanceName);
+        url.searchParams.append('number', number);
+        url.searchParams.append('text', message);
+
+        const response = await fetch(url.toString(), {
+            method: 'GET',
         });
 
         const result = await response.json();

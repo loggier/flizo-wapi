@@ -4,22 +4,15 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getInstances } from '@/app/actions';
 import { sendMessage as apiSendMessage } from '@/lib/flizowapi';
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const instanceName = searchParams.get('instance');
-  
-  let body;
-  try {
-    body = await request.json();
-  } catch (error) {
-    return NextResponse.json({ success: false, error: 'Cuerpo de la petición inválido (no es JSON).' }, { status: 400 });
-  }
-
-  const { number, text } = body;
+  const number = searchParams.get('number');
+  const text = searchParams.get('text');
 
   if (!instanceName || !number || !text) {
     return NextResponse.json(
-      { success: false, error: 'Faltan parámetros requeridos: instance en la URL y number, text en el body.' },
+      { success: false, error: 'Faltan parámetros requeridos en la URL: instance, number, y text.' },
       { status: 400 }
     );
   }
@@ -46,7 +39,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Simplified payload with only number and text at the root level.
     const payload = {
         number,
         text,
@@ -57,10 +49,9 @@ export async function POST(request: NextRequest) {
     if (sendMessageResult.success) {
       return NextResponse.json({ success: true, data: sendMessageResult.data });
     } else {
-      // The error from apiSendMessage should be detailed now.
       return NextResponse.json(
         { success: false, error: sendMessageResult.error },
-        { status: 400 } // Propagate bad request from FlizoWapi API
+        { status: 400 } 
       );
     }
   } catch (error) {
@@ -72,5 +63,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-    

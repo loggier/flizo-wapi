@@ -13,7 +13,7 @@ import {
   deleteInstance as apiDeleteInstance,
 } from '@/lib/evolution';
 import { addInstance, updateInstance, deleteInstance as fileDeleteInstance, getInstances } from '@/lib/instances';
-import { encrypt, decrypt } from '@/lib/session';
+import { encrypt } from '@/lib/session';
 import type { Instance } from '@/lib/definitions';
 import { getEvolutionApiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
 

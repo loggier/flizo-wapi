@@ -95,7 +95,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
           {error && <p className="text-center text-destructive">{error}</p>}
           {qrCode && (
             <Image
-              src={`data:image/png;base64,${qrCode}`}
+              src={qrCode}
               alt="Código QR de WhatsApp"
               width={250}
               height={250}

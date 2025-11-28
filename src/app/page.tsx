@@ -13,6 +13,11 @@ export default function DashboardPage() {
   const [instancesResult, setInstancesResult] = useState<{ success: boolean; instances?: Instance[]; error?: string | null }>({ success: false, instances: [], error: null });
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefresh = () => {
+    setRefreshKey(oldKey => oldKey + 1);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('session_token');
@@ -44,7 +49,7 @@ export default function DashboardPage() {
 
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshKey]);
   
   if (!isAuthenticated) {
     return <Loading />;
@@ -56,7 +61,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header onRefresh={handleRefresh} />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <InstanceList 
           initialInstances={instancesResult.success ? instancesResult.instances ?? [] : []}

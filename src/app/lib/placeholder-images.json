@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "login-background",
+      "description": "Abstract background for the login page.",
+      "imageUrl": "https://picsum.photos/seed/loginbg/1920/1080",
+      "imageHint": "abstract network"
+    }
+  ]
+}

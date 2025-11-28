@@ -2,7 +2,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { getInstances } from '@/app/actions';
-import { sendMessage as apiSendMessage } from '@/lib/evolution';
+import { sendMessage as apiSendMessage } from '@/lib/flizowapi';
 
 export async function POST(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       // The error from apiSendMessage should be detailed now.
       return NextResponse.json(
         { success: false, error: sendMessageResult.error },
-        { status: 400 } // Propagate bad request from Evolution API
+        { status: 400 } // Propagate bad request from FlizoWapi API
       );
     }
   } catch (error) {
@@ -72,3 +72,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+    

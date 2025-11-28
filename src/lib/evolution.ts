@@ -137,13 +137,13 @@ export async function sendMessage(instanceName: string, apiKey: string, number: 
             method: 'POST',
             headers: { 'apikey': apiKey },
             body: JSON.stringify({
-                number,
+                number: number,
                 options: {
                     delay: 1200,
                     presence: 'composing'
                 },
                 textMessage: {
-                    text
+                    text: text
                 }
             })
         });

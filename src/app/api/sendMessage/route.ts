@@ -2,16 +2,18 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getInstances } from '@/app/actions';
 import { sendMessage as apiSendMessage } from '@/lib/evolution';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const instanceName = searchParams.get('instance');
   const apiKey = searchParams.get('key');
-  const number = searchParams.get('number');
-  const text = searchParams.get('message');
+  
+  // Get number and message from the POST body
+  const body = await request.json();
+  const { number, message: text } = body;
 
   if (!instanceName || !apiKey || !number || !text) {
     return NextResponse.json(
-      { success: false, error: 'Faltan parámetros requeridos: instance, key, number, message' },
+      { success: false, error: 'Faltan parámetros requeridos: instance, key en la URL y number, message en el body.' },
       { status: 400 }
     );
   }
@@ -50,9 +52,10 @@ export async function GET(request: NextRequest) {
     if (sendMessageResult.success) {
       return NextResponse.json({ success: true, data: sendMessageResult.data });
     } else {
+      // Pass the specific error from the API call
       return NextResponse.json(
         { success: false, error: sendMessageResult.error },
-        { status: 500 }
+        { status: 400 } // Use 400 for Bad Request as it's a common cause
       );
     }
   } catch (error) {

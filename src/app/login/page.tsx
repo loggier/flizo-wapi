@@ -21,12 +21,17 @@ function LoginButton() {
   );
 }
 
-// A simple check to see if the app is likely running in a dev environment where .env.local would be used.
-const isDevEnvironment = process.env.NODE_ENV === 'development';
-
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: {
+    showDevInfo?: string;
+  };
+}) {
   const [errorMessage, dispatch] = useFormState(authenticate, undefined);
   const { toast } = useToast();
+
+  const showDevInfo = searchParams?.showDevInfo === 'true';
 
   useEffect(() => {
     if (errorMessage) {
@@ -67,7 +72,7 @@ export default function LoginPage() {
           </form>
         </Card>
         
-        {isDevEnvironment && (
+        {showDevInfo && (
           <Alert>
             <Terminal className="h-4 w-4" />
             <AlertTitle>Información para Desarrolladores</AlertTitle>

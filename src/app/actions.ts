@@ -179,7 +179,7 @@ export async function createInstance(formData: FormData) {
      };
  
      await addInstance(newInstance);
-     revalidatePath('/');
+     // revalidatePath('/'); // RECARGA ELIMINADA
      return { success: true, instance: newInstance };
 
   } catch (error) {

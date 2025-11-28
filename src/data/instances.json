@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "instanceName": "demo",
+    "apiKey": "b249fc4ffb3eef912a1207fe70b05e59",
+    "status": "CREATED",
+    "channel": "evolution",
+    "number": "528115820080"
+  }
+]

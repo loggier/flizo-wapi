@@ -30,16 +30,21 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
     if (isJson) {
       try {
         const errorJson = await response.json();
-        if (errorJson.message) {
-            errorMessage = Array.isArray(errorJson.message) ? errorJson.message.join(', ') : errorJson.message;
-        } else if (errorJson.error) {
-            errorMessage = errorJson.error;
-        } else if (errorJson.response?.message) {
-             errorMessage = errorJson.response.message;
+        // Try to find the most specific error message from the API response
+        if (typeof errorJson.message === 'string') {
+          errorMessage = errorJson.message;
+        } else if (Array.isArray(errorJson.message)) {
+          errorMessage = errorJson.message.join(', ');
+        } else if (typeof errorJson.error === 'string') {
+          errorMessage = errorJson.error;
+        } else if (typeof errorJson.response?.message === 'string') {
+          errorMessage = errorJson.response.message;
         } else {
-            errorMessage = JSON.stringify(errorJson);
+          // Fallback to stringifying the whole object if no specific message is found
+          errorMessage = JSON.stringify(errorJson);
         }
       } catch (e) {
+        // If parsing JSON fails, fallback to the raw text response
         errorMessage = await response.text();
       }
     } else {
@@ -49,6 +54,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
     throw new Error(errorMessage);
   }
   
+  // Handle cases with no content
   if (response.status === 204 || !contentType) {
     return null;
   }
@@ -56,8 +62,11 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
   if (isJson) {
     return response.json();
   }
+  
+  // Fallback for non-JSON responses
   return response.text();
 }
+
 
 export async function createInstance(instanceName: string, token: string, number?: string): Promise<EvolutionResponse> {
   try {

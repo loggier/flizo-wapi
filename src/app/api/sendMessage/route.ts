@@ -1,3 +1,4 @@
+'use client';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getInstances } from '@/app/actions';
 import { sendMessage as apiSendMessage } from '@/lib/evolution';
@@ -5,15 +6,14 @@ import { sendMessage as apiSendMessage } from '@/lib/evolution';
 export async function POST(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const instanceName = searchParams.get('instance');
-  const apiKey = searchParams.get('key');
   
   // Get number and message from the POST body
   const body = await request.json();
   const { number, message: text } = body;
 
-  if (!instanceName || !apiKey || !number || !text) {
+  if (!instanceName || !number || !text) {
     return NextResponse.json(
-      { success: false, error: 'Faltan parámetros requeridos: instance, key en la URL y number, message en el body.' },
+      { success: false, error: 'Faltan parámetros requeridos: instance en la URL y number, message en el body.' },
       { status: 400 }
     );
   }
@@ -32,13 +32,6 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
-
-    if (instance.apiKey !== apiKey) {
-      return NextResponse.json(
-        { success: false, error: 'Clave de API inválida' },
-        { status: 401 }
-      );
-    }
     
     if (instance.status !== 'CONNECTED') {
       return NextResponse.json(
@@ -47,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sendMessageResult = await apiSendMessage(instanceName, apiKey, number, text);
+    const sendMessageResult = await apiSendMessage(instanceName, instance.apiKey, number, text);
 
     if (sendMessageResult.success) {
       return NextResponse.json({ success: true, data: sendMessageResult.data });

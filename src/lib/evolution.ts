@@ -65,7 +65,7 @@ export async function createInstance(instanceName: string, token: string, number
       instanceName,
       token,
       qrcode: false, // As per documentation for this flow
-      integration: "EVOLUTION",
+      integration: "WHATSAPP-BAILEYS",
     };
     if (number) {
       payload.number = number;

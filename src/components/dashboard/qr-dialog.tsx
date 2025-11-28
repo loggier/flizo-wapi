@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 interface QrDialogProps {
@@ -25,7 +24,6 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,7 +58,6 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
 
     const startPolling = () => {
       pollInterval = setInterval(async () => {
-        // Stop polling if component is no longer active or dialog is closed
         if (!isActive || !open) {
             if(pollInterval) clearInterval(pollInterval);
             return;
@@ -68,10 +65,9 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         const statusResult = await checkInstanceStatus(instanceName);
         if (statusResult.success && statusResult.status === 'CONNECTED') {
           toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
-          setOpen(false); // This will trigger cleanup
+          setOpen(false); 
         }
-        // No need to handle error here, polling will continue
-      }, 5000); // Poll every 5 seconds
+      }, 5000); 
     };
     
     fetchQr();
@@ -82,7 +78,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         clearInterval(pollInterval);
       }
     };
-  }, [open, instanceName, router, toast]);
+  }, [open, instanceName, toast]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -46,7 +46,7 @@ export function CreateInstanceDialog() {
     } else {
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Error al crear instancia',
         description: result?.error || 'No se pudo crear la instancia.',
       });
     }

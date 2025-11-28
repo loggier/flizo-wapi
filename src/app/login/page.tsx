@@ -11,8 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function LoginButton() {
   const { pending } = useFormStatus();
@@ -31,8 +29,6 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
 
   const showDevInfo = searchParams.get('showDevInfo') === 'true';
-  const loginBg = PlaceHolderImages.find(p => p.id === 'login-background');
-
 
   useEffect(() => {
     // Redirect if already logged in
@@ -56,27 +52,17 @@ export default function LoginPage() {
   }, [state, router, toast]);
 
   return (
-    <main className="relative flex items-center justify-center min-h-screen bg-background p-4">
-       {loginBg && (
-        <Image
-          src={loginBg.imageUrl}
-          alt={loginBg.description}
-          fill
-          className="object-cover -z-10 brightness-50"
-          data-ai-hint={loginBg.imageHint}
-          priority
-        />
-      )}
+    <main className="flex items-center justify-center min-h-screen bg-secondary p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-            <h1 className="text-3xl font-bold font-headline text-primary-foreground">Dashboard de FlizoWapi</h1>
-            <p className="text-muted-foreground mt-2 text-gray-300">Conecta y administra tus instancias de API</p>
+            <h1 className="text-3xl font-bold font-headline text-primary">Dashboard de FlizoWapi</h1>
+            <p className="text-muted-foreground mt-2">Conecta y administra tus instancias de API</p>
         </div>
-        <Card className="bg-card/80 backdrop-blur-sm border-white/20">
+        <Card>
           <form action={dispatch}>
             <CardHeader>
               <CardTitle>Acceso Seguro</CardTitle>
-              <CardDescription className="text-gray-300">Ingresa tus credenciales para administrar tus instancias.</CardDescription>
+              <CardDescription>Ingresa tus credenciales para administrar tus instancias.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">

@@ -72,12 +72,6 @@ export async function createInstance(formData: FormData) {
   
   const { instanceName, channel, number } = parseResult.data;
 
-  // Check if instance already exists locally
-  const existingInstancesResult = await getInstances();
-  if (existingInstancesResult.success && existingInstancesResult.instances.some(inst => inst.instanceName === instanceName)) {
-    return { success: false, error: 'Ya existe una instancia con este nombre.' };
-  }
-
   // Generate a random token
   const token = randomBytes(16).toString('hex');
 

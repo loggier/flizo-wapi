@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { QrCode, LogOut, Trash2, Copy, Zap, XCircle, Loader2 } from 'lucide-react';
+import { QrCode, LogOut, Trash2, Copy, Zap, XCircle, Loader2, MessageSquareText, Users, AtSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { QrDialog } from './qr-dialog';
 import {
@@ -22,6 +22,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Separator } from '../ui/separator';
 
 type StatusVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
@@ -44,6 +46,7 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
   const [isDeleting, startDeleteTransition] = useTransition();
   
   const ownerNumber = instance.owner?.split('@')[0] || instance.number || 'N/A';
+  const profileInitial = (instance.profileName || instance.instanceName).charAt(0).toUpperCase();
 
   const apiUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}&number=...&message=...`
@@ -86,16 +89,43 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <div className="flex justify-between items-start">
-          <CardTitle className="font-headline break-all">{instance.instanceName}</CardTitle>
-          <Badge variant={statusInfo.variant} className="flex items-center gap-1.5 shrink-0">
-            {statusInfo.icon}
-            {statusInfo.text}
-          </Badge>
+        <div className="flex justify-between items-start gap-4">
+            <div className='flex items-center gap-4'>
+                <Avatar>
+                    <AvatarImage src={instance.profilePicUrl || ''} alt={instance.profileName || instance.instanceName} />
+                    <AvatarFallback>{profileInitial}</AvatarFallback>
+                </Avatar>
+                <div className='flex-1'>
+                    <CardTitle className="font-headline text-lg break-all">{instance.profileName || instance.instanceName}</CardTitle>
+                    <CardDescription>Número: {ownerNumber}</CardDescription>
+                </div>
+            </div>
+            <Badge variant={statusInfo.variant} className="flex items-center gap-1.5 shrink-0 text-xs">
+                {statusInfo.icon}
+                {statusInfo.text}
+            </Badge>
         </div>
-        <CardDescription>Número: {ownerNumber}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
+        {instance._count && (
+            <>
+                <div className='grid grid-cols-3 gap-2 text-center text-sm'>
+                    <div>
+                        <p className='font-bold text-lg'>{instance._count.Message}</p>
+                        <p className='text-muted-foreground text-xs flex items-center justify-center gap-1'><MessageSquareText /> Mensajes</p>
+                    </div>
+                    <div>
+                        <p className='font-bold text-lg'>{instance._count.Chat}</p>
+                        <p className='text-muted-foreground text-xs flex items-center justify-center gap-1'><AtSign /> Chats</p>
+                    </div>
+                    <div>
+                        <p className='font-bold text-lg'>{instance._count.Contact}</p>
+                        <p className='text-muted-foreground text-xs flex items-center justify-center gap-1'><Users /> Contactos</p>
+                    </div>
+                </div>
+                <Separator />
+            </>
+        )}
         <div>
           <Label htmlFor={`api-url-${instance.instanceName}`} className="text-xs">Tu URL de API para enviar mensajes</Label>
           <div className="flex items-center gap-2 mt-1">

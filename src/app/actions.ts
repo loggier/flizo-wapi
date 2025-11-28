@@ -25,7 +25,7 @@ const dataFilePath = path.join(process.cwd(), 'src', 'data', 'instances.json');
 type GetInstancesResult = { success: true; instances: Instance[] } | { success: false; error: string };
 type MutateInstanceResult = { success: true } | { success: false; error: string };
 
-async function readData(): Promise<{ success: true; instances: Omit<Instance, 'status' | 'owner'>[] } | { success: false; error: string }> {
+async function readData(): Promise<{ success: true; instances: Omit<Instance, 'status' | 'owner' | 'profileName' | 'profilePicUrl' | '_count'>[] } | { success: false; error: string }> {
   try {
     await fs.access(dataFilePath);
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
@@ -41,7 +41,7 @@ async function readData(): Promise<{ success: true; instances: Omit<Instance, 's
   }
 }
 
-async function writeData(data: Omit<Instance, 'status' | 'owner'>[]): Promise<MutateInstanceResult> {
+async function writeData(data: Omit<Instance, 'status' | 'owner'| 'profileName' | 'profilePicUrl' | '_count'>[]): Promise<MutateInstanceResult> {
   try {
     const jsonData = JSON.stringify(data, null, 2);
     await fs.writeFile(dataFilePath, jsonData, 'utf-8');
@@ -79,6 +79,10 @@ export async function getInstances(): Promise<GetInstancesResult> {
     
     let status: InstanceStatus = 'DISCONNECTED';
     let owner: string | undefined = undefined;
+    let profileName: string | null | undefined = undefined;
+    let profilePicUrl: string | null | undefined = undefined;
+    let _count: { Message: number, Contact: number, Chat: number } | undefined = undefined;
+
 
     if (apiInst) {
       switch (apiInst.connectionStatus) {
@@ -95,12 +99,18 @@ export async function getInstances(): Promise<GetInstancesResult> {
           status = 'DISCONNECTED';
       }
       owner = apiInst.ownerJid;
+      profileName = apiInst.profileName;
+      profilePicUrl = apiInst.profilePicUrl;
+      _count = apiInst._count;
     }
     
     return {
       ...localInst,
       status,
       owner,
+      profileName,
+      profilePicUrl,
+      _count,
     };
   });
 
@@ -108,7 +118,7 @@ export async function getInstances(): Promise<GetInstancesResult> {
 }
 
 
-async function addInstance(newInstance: Omit<Instance, 'status' | 'owner'>): Promise<MutateInstanceResult> {
+async function addInstance(newInstance: Omit<Instance, 'status' | 'owner' | 'profileName' | 'profilePicUrl' | '_count'>): Promise<MutateInstanceResult> {
   const readResult = await readData();
   if (!readResult.success) return readResult;
 
@@ -205,7 +215,7 @@ export async function createInstance(formData: FormData) {
        return { success: false, error: apiResult.error };
      }
 
-     const newInstance: Omit<Instance, 'status' | 'owner'> = {
+     const newInstance: Omit<Instance, 'status' | 'owner' | 'profileName' | 'profilePicUrl' | '_count'> = {
        instanceName,
        apiKey: token,
        channel: 'baileys',

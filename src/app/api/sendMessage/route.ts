@@ -1,4 +1,3 @@
-'use client';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getInstances } from '@/app/actions';
 import { sendMessage as apiSendMessage } from '@/lib/evolution';

@@ -19,7 +19,7 @@ export function Header({ onRefresh }: HeaderProps) {
           <RefreshCw className="h-4 w-4" />
         </Button>
         <HelpDialog />
-        <CreateInstanceDialog />
+        <CreateInstanceDialog onRefresh={onRefresh} />
         <LogoutButton />
       </div>
     </header>

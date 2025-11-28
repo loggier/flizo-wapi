@@ -64,7 +64,7 @@ export async function createInstance(instanceName: string, token: string, number
     const payload: any = {
       instanceName,
       token,
-      qrcode: false, // As per documentation for this flow
+      qrcode: false,
       integration: "WHATSAPP-BAILEYS",
     };
     if (number) {
@@ -90,7 +90,7 @@ export async function fetchQrCode(instanceName: string): Promise<{success: true,
     if (data.status === 'error' || !data.base64) {
        return { success: false, error: data.message || 'La API no devolvió un código QR. La instancia podría estar ya conectada.' };
     }
-    return { success: true, qr: data.base64, instanceName: data.instance };
+    return { success: true, qr: `data:image/png;base64,${data.base64}`, instanceName: data.instance };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'No se pudo obtener el código QR' };
   }
@@ -151,4 +151,17 @@ export async function sendMessage(instanceName: string, apiKey: string, number: 
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : 'No se pudo enviar el mensaje' };
     }
+}
+
+
+export async function fetchInstances(): Promise<EvolutionResponse> {
+  try {
+    const data = await apiFetch('/instance/fetchInstances', {
+      method: 'GET',
+      headers: { 'apikey': GLOBAL_API_KEY! },
+    });
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'No se pudieron obtener las instancias de la API' };
+  }
 }

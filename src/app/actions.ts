@@ -3,7 +3,6 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
 import {
@@ -12,9 +11,10 @@ import {
   getInstanceStatus as apiGetInstanceStatus,
   logoutInstance as apiLogoutInstance,
   deleteInstance as apiDeleteInstance,
+  fetchInstances as apiFetchInstances,
 } from '@/lib/evolution';
 import { encrypt } from '@/lib/session';
-import type { Instance } from '@/lib/definitions';
+import type { Instance, ApiInstance, InstanceStatus } from '@/lib/definitions';
 import { getEvolutionApiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
 
 
@@ -25,7 +25,7 @@ const dataFilePath = path.join(process.cwd(), 'src', 'data', 'instances.json');
 type GetInstancesResult = { success: true; instances: Instance[] } | { success: false; error: string };
 type MutateInstanceResult = { success: true } | { success: false; error: string };
 
-async function readData(): Promise<GetInstancesResult> {
+async function readData(): Promise<{ success: true; instances: Omit<Instance, 'status' | 'owner'>[] } | { success: false; error: string }> {
   try {
     await fs.access(dataFilePath);
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
@@ -37,11 +37,11 @@ async function readData(): Promise<GetInstancesResult> {
       return { success: true, instances: [] };
     }
     console.error('Failed to read instances data:', error);
-    return { success: false, error: 'No se pudieron leer los datos de las instancias.' };
+    return { success: false, error: 'No se pudieron leer los datos de las instancias locales.' };
   }
 }
 
-async function writeData(data: Instance[]): Promise<MutateInstanceResult> {
+async function writeData(data: Omit<Instance, 'status' | 'owner'>[]): Promise<MutateInstanceResult> {
   try {
     const jsonData = JSON.stringify(data, null, 2);
     await fs.writeFile(dataFilePath, jsonData, 'utf-8');
@@ -52,11 +52,63 @@ async function writeData(data: Instance[]): Promise<MutateInstanceResult> {
   }
 }
 
+// Fetches live data from Evolution API and merges it with local data
 export async function getInstances(): Promise<GetInstancesResult> {
-  return readData();
+  const localDataResult = await readData();
+  const apiDataResult = await apiFetchInstances();
+
+  if (!localDataResult.success) {
+    return localDataResult;
+  }
+  
+  if (!apiDataResult.success) {
+    // If API fails, return local data with 'DISCONNECTED' status as a fallback
+    console.error("API fetch failed, returning local data as fallback:", apiDataResult.error);
+    const fallbackInstances = localDataResult.instances.map(inst => ({
+      ...inst,
+      status: 'DISCONNECTED' as InstanceStatus,
+    }));
+    return { success: true, instances: fallbackInstances };
+  }
+
+  const localInstances = localDataResult.instances;
+  const apiInstances: ApiInstance[] = apiDataResult.data;
+
+  const mergedInstances: Instance[] = localInstances.map(localInst => {
+    const apiInst = apiInstances.find(ai => ai.instance.instanceName === localInst.instanceName);
+    
+    let status: InstanceStatus = 'DISCONNECTED';
+    let owner: string | undefined = undefined;
+
+    if (apiInst) {
+      switch (apiInst.instance.status) {
+        case 'open':
+          status = 'CONNECTED';
+          break;
+        case 'connecting':
+          status = 'CONNECTING';
+          break;
+        case 'close':
+          status = 'CLOSED';
+          break;
+        default:
+          status = 'DISCONNECTED';
+      }
+      owner = apiInst.instance.owner;
+    }
+    
+    return {
+      ...localInst,
+      status,
+      owner,
+    };
+  });
+
+  return { success: true, instances: mergedInstances };
 }
 
-async function addInstance(newInstance: Instance): Promise<MutateInstanceResult> {
+
+async function addInstance(newInstance: Omit<Instance, 'status' | 'owner'>): Promise<MutateInstanceResult> {
   const readResult = await readData();
   if (!readResult.success) return readResult;
 
@@ -69,20 +121,6 @@ async function addInstance(newInstance: Instance): Promise<MutateInstanceResult>
   return writeData(instances);
 }
 
-async function updateInstance(instanceName: string, updateData: Partial<Instance>): Promise<MutateInstanceResult> {
-  const readResult = await readData();
-  if (!readResult.success) return readResult;
-
-  const instances = readResult.instances;
-  const instanceIndex = instances.findIndex(inst => inst.instanceName === instanceName);
-
-  if (instanceIndex === -1) {
-    return { success: false, error: 'Instancia no encontrada.' };
-  }
-
-  instances[instanceIndex] = { ...instances[instanceIndex], ...updateData };
-  return writeData(instances);
-}
 
 async function fileDeleteInstance(instanceName: string): Promise<MutateInstanceResult> {
   const readResult = await readData();
@@ -138,8 +176,6 @@ export async function authenticate(
 
 // Session check is now client-side, this can be simplified or removed if not used server-side
 export async function getSession() {
-  // This function would need to receive the token from the client if it were to
-  // perform server-side session checks. For now, it's a placeholder.
   return null;
 }
 
@@ -169,17 +205,15 @@ export async function createInstance(formData: FormData) {
        return { success: false, error: apiResult.error };
      }
 
-     const newInstance: Instance = {
+     const newInstance: Omit<Instance, 'status' | 'owner'> = {
        instanceName,
        apiKey: token,
-       status: 'CREATED', // Start as created, user will need to connect
        channel: 'baileys',
        number: number || '',
      };
  
      await addInstance(newInstance);
-     // revalidatePath('/'); // RECARGA ELIMINADA
-     return { success: true, instance: newInstance };
+     return { success: true, instance: { ...newInstance, status: 'CREATED' } };
 
   } catch (error) {
       let errorMessage = 'No se pudo crear la instancia en la API de Evolution.';
@@ -193,36 +227,36 @@ export async function createInstance(formData: FormData) {
 export async function getQrCode(instanceName: string) {
   const result = await apiFetchQrCode(instanceName);
   if (result.success) {
-    await updateInstance(instanceName, { status: 'CONNECTING' });
     return { success: true, qr: result.qr, instanceName: result.instanceName };
   }
   return { success: false, error: result.error };
 }
 
 export async function checkInstanceStatus(instanceName: string) {
-    // We need to retrieve the apiKey for the instance to check its status
     const instancesResult = await getInstances();
     if (!instancesResult.success) {
       return { success: false, error: "No se pudieron obtener las instancias locales." };
     }
     const instance = instancesResult.instances.find(inst => inst.instanceName === instanceName);
     if (!instance) {
-      return { success: false, error: "Instancia no encontrada localmente." };
+      return { success: false, error: "Instancia no encontrada." };
     }
 
-    const result = await apiGetInstanceStatus(instanceName, instance.apiKey);
-    if (result.success) {
-        const newStatus = result.state === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED';
-        if (instance.status !== newStatus) {
-          await updateInstance(instanceName, { status: newStatus });
-        }
-        return { success: true, status: newStatus };
+    // Now, status comes from getInstances, but we can double-check with the specific endpoint if needed
+    if (instance.status === 'CONNECTED') {
+        return { success: true, status: 'CONNECTED' };
     }
-    return { success: false, error: result.error };
+
+    // If not connected, let's poll the specific endpoint to be sure
+    const result = await apiGetInstanceStatus(instanceName, instance.apiKey);
+    if (result.success && result.state === 'CONNECTED') {
+        return { success: true, status: 'CONNECTED' };
+    }
+    
+    return { success: false, status: instance.status }; // Return current status if not connected
 }
 
 export async function disconnectInstance(instanceName: string) {
-  // We need to retrieve the apiKey for the instance to disconnect
   const instancesResult = await getInstances();
   if (!instancesResult.success) {
       return { success: false, error: "No se pudieron obtener las instancias locales." };
@@ -234,7 +268,6 @@ export async function disconnectInstance(instanceName: string) {
 
   const result = await apiLogoutInstance(instanceName, instance.apiKey);
   if (result.success) {
-    await updateInstance(instanceName, { status: 'DISCONNECTED' });
     revalidatePath('/');
     return { success: true };
   }
@@ -242,26 +275,22 @@ export async function disconnectInstance(instanceName: string) {
 }
 
 export async function deleteInstance(instanceName: string) {
-  // We need to retrieve the apiKey for the instance to delete from API
-  const instancesResult = await getInstances();
+  const instancesResult = await readData();
   let apiKey: string | undefined;
   if (instancesResult.success) {
     apiKey = instancesResult.instances.find(inst => inst.instanceName === instanceName)?.apiKey;
   }
 
-  // First, delete from the local file to prevent orphaned entries
   const fileDeleteResult = await fileDeleteInstance(instanceName);
   if (!fileDeleteResult.success) {
     return { success: false, error: fileDeleteResult.error };
   }
   
-  revalidatePath('/'); // Revalidate immediately after local deletion
+  revalidatePath('/'); 
 
   if (apiKey) {
-      // Then, attempt to delete from the Evolution API
       const apiDeleteResult = await apiDeleteInstance(instanceName, apiKey);
       if (!apiDeleteResult.success) {
-        // Log the error but consider the primary operation (file deletion) a success for the UI
         console.error(`La eliminación de la API falló para ${instanceName}: ${apiDeleteResult.error}`);
         return { success: true, warning: 'Instancia eliminada del dashboard, pero no se pudo eliminar de la API de Evolution.' };
       }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import type { Instance } from '@/lib/definitions';
+import type { Instance, InstanceStatus } from '@/lib/definitions';
 import { disconnectInstance, deleteInstance } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,12 @@ import {
 
 type StatusVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
-const statusMap: Record<Instance['status'], { text: string; variant: StatusVariant; icon: React.ReactNode }> = {
+const statusMap: Record<InstanceStatus, { text: string; variant: StatusVariant; icon: React.ReactNode }> = {
   CREATED: { text: 'Creado', variant: 'outline', icon: <XCircle className="w-3 h-3 text-amber-500" /> },
   CONNECTING: { text: 'Conectando', variant: 'secondary', icon: <Loader2 className="w-3 h-3 animate-spin text-blue-500" /> },
   CONNECTED: { text: 'Conectado', variant: 'default', icon: <Zap className="w-3 h-3 text-green-500" /> },
   DISCONNECTED: { text: 'Desconectado', variant: 'destructive', icon: <XCircle className="w-3 h-3" /> },
+  CLOSED: { text: 'Desconectado', variant: 'destructive', icon: <XCircle className="w-3 h-3" /> },
 };
 
 interface InstanceCardProps {
@@ -41,6 +42,8 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
   const { toast } = useToast();
   const [isDisconnecting, startDisconnectTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
+  
+  const ownerNumber = instance.owner?.split('@')[0] || instance.number || 'N/A';
 
   const apiUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}&number=...&message=...`
@@ -78,19 +81,19 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
     });
   };
 
-  const status = statusMap[instance.status] || statusMap.DISCONNECTED;
+  const statusInfo = statusMap[instance.status] || statusMap.DISCONNECTED;
 
   return (
     <Card className="flex flex-col">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="font-headline break-all">{instance.instanceName}</CardTitle>
-          <Badge variant={status.variant} className="flex items-center gap-1.5 shrink-0">
-            {status.icon}
-            {status.text}
+          <Badge variant={statusInfo.variant} className="flex items-center gap-1.5 shrink-0">
+            {statusInfo.icon}
+            {statusInfo.text}
           </Badge>
         </div>
-        <CardDescription>Número: {instance.number || 'N/A'}</CardDescription>
+        <CardDescription>Número: {ownerNumber}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div>

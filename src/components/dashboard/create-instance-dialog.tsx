@@ -28,7 +28,11 @@ function SubmitButton() {
   );
 }
 
-export function CreateInstanceDialog() {
+interface CreateInstanceDialogProps {
+    onRefresh: () => void;
+}
+
+export function CreateInstanceDialog({ onRefresh }: CreateInstanceDialogProps) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
@@ -43,6 +47,7 @@ export function CreateInstanceDialog() {
       });
       setOpen(false);
       formRef.current?.reset();
+      onRefresh(); // Refresh the list
     } else {
       toast({
         variant: 'destructive',

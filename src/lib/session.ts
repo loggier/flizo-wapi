@@ -18,7 +18,9 @@ export async function encrypt(payload: any) {
 
 export async function decrypt(input: string): Promise<any> {
   if (!secretKey) {
-    throw new Error('AUTH_SECRET no está configurado en las variables de entorno.');
+    // This will be caught by the middleware and handled gracefully
+    console.error('AUTH_SECRET is not set in environment variables.');
+    return null;
   }
   try {
     const { payload } = await jwtVerify(input, key, {
@@ -27,6 +29,7 @@ export async function decrypt(input: string): Promise<any> {
     return payload;
   } catch (error) {
     // This will be caught by the middleware if token is invalid/expired
+    console.error('Failed to verify session', error);
     return null;
   }
 }

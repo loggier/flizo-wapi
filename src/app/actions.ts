@@ -13,7 +13,7 @@ import {
   deleteInstance as apiDeleteInstance,
 } from '@/lib/evolution';
 import { addInstance, updateInstance, deleteInstance as fileDeleteInstance, getInstances } from '@/lib/instances';
-import { encrypt } from '@/lib/session';
+import { encrypt, decrypt } from '@/lib/session';
 import type { Instance } from '@/lib/definitions';
 import { getEvolutionApiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
 
@@ -25,7 +25,7 @@ const AuthFormSchema = z.object({
 });
 
 export async function authenticate(
-  prevState: string | undefined,
+  prevState: { error: string | undefined },
   formData: FormData,
 ) {
   try {
@@ -34,24 +34,27 @@ export async function authenticate(
     if (username === process.env.AUTH_USER && password === process.env.AUTH_PASSWORD) {
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
       const session = await encrypt({ user: { name: username }, expires });
-
-      cookies().set('session', session, { expires, httpOnly: true });
-      
+      return { success: true, token: session };
     } else {
-      return 'Credenciales inválidas.';
+      return { error: 'Credenciales inválidas.' };
     }
   } catch (error) {
     if (error instanceof Error) {
-      return error.message;
+      return { error: error.message };
     }
-    return 'Ocurrió un error desconocido.';
+    return { error: 'Ocurrió un error desconocido.' };
   }
-  redirect('/');
 }
 
-export async function logout() {
-  cookies().set('session', '', { expires: new Date(0) });
-  redirect('/login');
+export async function getSession() {
+  const sessionCookie = cookies().get('session')?.value;
+  if (!sessionCookie) return null;
+  // This might fail if the secret changes or token is invalid
+  try {
+    return await decrypt(sessionCookie);
+  } catch (error) {
+    return null;
+  }
 }
 
 

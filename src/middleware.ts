@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { decrypt } from '@/lib/session';
 
-const protectedRoutes = ['/'];
 const publicRoutes = ['/login'];
 
 // Check if essential environment variables are set
@@ -17,7 +15,6 @@ const showDevInfo = process.env.NODE_ENV === 'development' && !areVarsSet;
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.includes(path);
   const isPublicRoute = publicRoutes.includes(path);
 
   if (isPublicRoute && path === '/login' && showDevInfo) {
@@ -26,18 +23,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  if (isProtectedRoute) {
-    const cookie = request.cookies.get('session')?.value;
-    if (!cookie) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    const session = await decrypt(cookie);
-
-    if (!session?.user) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-  }
+  // Client-side authentication is now responsible for route protection.
+  // The middleware's role is simplified.
 
   return NextResponse.next();
 }

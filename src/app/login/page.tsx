@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, FormEvent } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authenticate } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useSearchParams } from 'next/navigation';
 
 function LoginButton() {
   const { pending } = useFormStatus();
@@ -23,21 +23,33 @@ function LoginButton() {
 }
 
 export default function LoginPage() {
-  const [errorMessage, dispatch] = useActionState(authenticate, undefined);
+  const [state, dispatch] = useActionState(authenticate, { error: undefined });
   const { toast } = useToast();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const showDevInfo = searchParams.get('showDevInfo') === 'true';
 
   useEffect(() => {
-    if (errorMessage) {
+    // Redirect if already logged in
+    if (localStorage.getItem('session_token')) {
+      router.push('/');
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (state.error) {
       toast({
         variant: 'destructive',
         title: 'Fallo de Inicio de Sesión',
-        description: errorMessage,
+        description: state.error,
       });
     }
-  }, [errorMessage, toast]);
+    if (state.success && state.token) {
+        localStorage.setItem('session_token', state.token);
+        router.push('/');
+    }
+  }, [state, router, toast]);
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4">

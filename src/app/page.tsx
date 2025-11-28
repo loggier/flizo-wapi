@@ -1,17 +1,59 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getInstances } from '@/lib/instances';
 import { Header } from '@/components/dashboard/header';
 import { InstanceList } from '@/components/dashboard/instance-list';
+import Loading from './loading';
+import type { Instance } from '@/lib/definitions';
 
-export default async function DashboardPage() {
-  // Fetching instances on the server to be passed to the client component
-  const instancesResult = await getInstances();
+export default function DashboardPage() {
+  const router = useRouter();
+  const [instancesResult, setInstancesResult] = useState<{ success: boolean; instances?: Instance[]; error?: string | null }>({ success: false, instances: [], error: null });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('session_token');
+    if (!token) {
+      router.push('/login');
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+  
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    async function fetchInstances() {
+      setIsLoading(true);
+      const result = await getInstances();
+      if (result.success) {
+        setInstancesResult({ success: true, instances: result.instances, error: null });
+      } else {
+        setInstancesResult({ success: false, error: result.error });
+      }
+      setIsLoading(false);
+    }
+
+    fetchInstances();
+  }, [isAuthenticated]);
+  
+  if (!isAuthenticated) {
+    return <Loading />;
+  }
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <InstanceList 
-          initialInstances={instancesResult.success ? instancesResult.instances : []}
+          initialInstances={instancesResult.success ? instancesResult.instances ?? [] : []}
           error={!instancesResult.success ? instancesResult.error : null}
         />
       </main>

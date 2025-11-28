@@ -46,16 +46,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Correct payload structure according to Evolution API documentation
+    // Simplified payload with only number and text at the root level.
     const payload = {
         number,
-        options: {
-          delay: 1200,
-          presence: 'composing',
-        },
-        textMessage: {
-          text,
-        },
+        text,
     };
 
     const sendMessageResult = await apiSendMessage(instanceName, instance.apiKey, payload);

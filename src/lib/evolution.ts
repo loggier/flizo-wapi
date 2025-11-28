@@ -151,8 +151,9 @@ export async function deleteInstance(instanceName: string, instanceApiKey: strin
   }
 }
 
-export async function sendMessage(instanceName: string, apiKey: string, payload: any): Promise<EvolutionResponse> {
-    try {
+export async function sendMessage(instanceName: string, apiKey: string, payload: { number: string; text: string }): Promise<EvolutionResponse> {
+  console.log(payload);
+  try {
         const data = await apiFetch(`/message/sendText/${instanceName}`, {
             method: 'POST',
             headers: { 'apikey': apiKey },

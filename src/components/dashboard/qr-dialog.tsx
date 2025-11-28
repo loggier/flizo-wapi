@@ -2,7 +2,6 @@
 
 import { useState, useEffect, type PropsWithChildren } from 'react';
 import { getQrCode, checkInstanceStatus } from '@/app/actions';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -17,9 +16,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface QrDialogProps {
   instanceName: string;
+  onConnected: () => void;
 }
 
-export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogProps>) {
+export function QrDialog({ instanceName, onConnected, children }: PropsWithChildren<QrDialogProps>) {
   const [open, setOpen] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,9 +65,11 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         const statusResult = await checkInstanceStatus(instanceName);
         if (statusResult.success && statusResult.status === 'CONNECTED') {
           toast({ title: 'Éxito', description: `Instancia "${instanceName}" conectada.` });
+          if (pollInterval) clearInterval(pollInterval);
           setOpen(false); 
+          onConnected(); // Avisa a la página principal para que se refresque
         }
-      }, 5000); 
+      }, 3000); 
     };
     
     fetchQr();
@@ -78,7 +80,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
         clearInterval(pollInterval);
       }
     };
-  }, [open, instanceName, toast]);
+  }, [open, instanceName, toast, onConnected]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -95,7 +97,7 @@ export function QrDialog({ instanceName, children }: PropsWithChildren<QrDialogP
           {error && <p className="text-center text-destructive">{error}</p>}
           {qrCode && (
             <Image
-              src={qrCode}
+              src={`data:image/png;base64,${qrCode}`}
               alt="Código QR de WhatsApp"
               width={250}
               height={250}

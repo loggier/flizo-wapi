@@ -32,7 +32,12 @@ const statusMap: Record<Instance['status'], { text: string; variant: StatusVaria
   DISCONNECTED: { text: 'Desconectado', variant: 'destructive', icon: <XCircle className="w-3 h-3" /> },
 };
 
-export function InstanceCard({ instance }: { instance: Instance }) {
+interface InstanceCardProps {
+  instance: Instance;
+  onRefresh: () => void;
+}
+
+export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
   const { toast } = useToast();
   const [isDisconnecting, startDisconnectTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
@@ -51,6 +56,7 @@ export function InstanceCard({ instance }: { instance: Instance }) {
       const result = await disconnectInstance(instance.instanceName);
       if (result.success) {
         toast({ description: `Instancia "${instance.instanceName}" desconectada.` });
+        onRefresh();
       } else {
         toast({ variant: 'destructive', title: 'Error', description: result.error });
       }
@@ -65,6 +71,7 @@ export function InstanceCard({ instance }: { instance: Instance }) {
         if (result.warning) {
           toast({ variant: 'default', title: 'Advertencia', description: result.warning, duration: 5000 });
         }
+        onRefresh();
       } else {
         toast({ variant: 'destructive', title: 'Error', description: result.error });
       }
@@ -83,7 +90,7 @@ export function InstanceCard({ instance }: { instance: Instance }) {
             {status.text}
           </Badge>
         </div>
-        <CardDescription>Canal: {instance.channel} | Número: {instance.number || 'N/A'}</CardDescription>
+        <CardDescription>Número: {instance.number || 'N/A'}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div>
@@ -96,7 +103,7 @@ export function InstanceCard({ instance }: { instance: Instance }) {
       </CardContent>
       <CardFooter className="justify-end gap-2">
         {instance.status !== 'CONNECTED' && (
-          <QrDialog instanceName={instance.instanceName}>
+          <QrDialog instanceName={instance.instanceName} onConnected={onRefresh}>
             <Button variant="outline"><QrCode className="mr-2 h-4 w-4" />Conectar</Button>
           </QrDialog>
         )}

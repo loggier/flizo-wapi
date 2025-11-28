@@ -13,10 +13,17 @@ export default function DashboardPage() {
   const [instancesResult, setInstancesResult] = useState<{ success: boolean; instances?: Instance[]; error?: string | null }>({ success: false, instances: [], error: null });
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleRefresh = () => {
-    setRefreshKey(oldKey => oldKey + 1);
+  const handleRefresh = async () => {
+    if (!isAuthenticated) return;
+    setIsLoading(true);
+    const result = await getInstances();
+    if (result.success) {
+      setInstancesResult({ success: true, instances: result.instances, error: null });
+    } else {
+      setInstancesResult({ success: false, error: result.error });
+    }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -29,21 +36,8 @@ export default function DashboardPage() {
   }, [router]);
   
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    async function fetchInstances() {
-      setIsLoading(true);
-      const result = await getInstances();
-      if (result.success) {
-        setInstancesResult({ success: true, instances: result.instances, error: null });
-      } else {
-        setInstancesResult({ success: false, error: result.error });
-      }
-      setIsLoading(false);
-    }
-
-    fetchInstances();
-  }, [isAuthenticated, refreshKey]);
+    handleRefresh();
+  }, [isAuthenticated]);
   
   if (!isAuthenticated) {
     return <Loading />;
@@ -60,6 +54,7 @@ export default function DashboardPage() {
         <InstanceList 
           initialInstances={instancesResult.success ? instancesResult.instances ?? [] : []}
           error={!instancesResult.success ? instancesResult.error : null}
+          onRefresh={handleRefresh}
         />
       </main>
     </div>

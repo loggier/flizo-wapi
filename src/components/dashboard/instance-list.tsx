@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { Instance } from '@/lib/definitions';
 import { InstanceCard } from './instance-card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -8,9 +9,17 @@ import { AlertTriangle, ServerOff } from 'lucide-react';
 interface InstanceListProps {
   initialInstances: Instance[];
   error: string | null;
+  onRefresh: () => void;
 }
 
-export function InstanceList({ initialInstances, error }: InstanceListProps) {
+export function InstanceList({ initialInstances, error, onRefresh }: InstanceListProps) {
+    const [instances, setInstances] = useState(initialInstances);
+
+    useEffect(() => {
+        setInstances(initialInstances);
+    }, [initialInstances]);
+
+
   if (error) {
     return (
         <Alert variant="destructive" className="max-w-2xl mx-auto">
@@ -24,7 +33,7 @@ export function InstanceList({ initialInstances, error }: InstanceListProps) {
     );
   }
 
-  if (initialInstances.length === 0) {
+  if (instances.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-16 px-4 border-2 border-dashed rounded-lg">
         <ServerOff className="w-16 h-16 text-muted-foreground" />
@@ -36,8 +45,8 @@ export function InstanceList({ initialInstances, error }: InstanceListProps) {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {initialInstances.map((instance) => (
-        <InstanceCard key={instance.instanceName} instance={instance} />
+      {instances.map((instance) => (
+        <InstanceCard key={instance.instanceName} instance={instance} onRefresh={onRefresh} />
       ))}
     </div>
   );

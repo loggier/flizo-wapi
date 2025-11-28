@@ -43,12 +43,6 @@ export default function DashboardPage() {
     }
 
     fetchInstances();
-    
-    // Set up an interval to refresh the instances every 5 seconds
-    const intervalId = setInterval(fetchInstances, 5000);
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
   }, [isAuthenticated, refreshKey]);
   
   if (!isAuthenticated) {

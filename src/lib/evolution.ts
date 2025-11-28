@@ -19,13 +19,22 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
     },
   });
 
-  if (!response.ok && response.status !== 404 && response.status !== 422) { // 422 is used for "instance not found" sometimes
+  const contentType = response.headers.get('content-type');
+  const isJson = contentType && contentType.includes('application/json');
+
+  if (!response.ok) {
+    let errorMessage = `Error de API (${response.status})`;
+    if (isJson) {
+      const errorJson = await response.json();
+      errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+    } else {
       const errorText = await response.text();
-      throw new Error(`Error de API (${response.status}): ${errorText || response.statusText}`);
+      errorMessage = errorText || response.statusText;
+    }
+    throw new Error(errorMessage);
   }
 
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
+  if (isJson) {
     return response.json();
   }
   return response.text();

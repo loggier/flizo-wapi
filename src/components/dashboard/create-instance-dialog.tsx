@@ -65,7 +65,7 @@ export function CreateInstanceDialog() {
         <DialogHeader>
           <DialogTitle>Crear Nueva Instancia</DialogTitle>
           <DialogDescription>
-            Completa los detalles de tu nueva instancia.
+            Completa los detalles de tu nueva instancia. Se generará un token de API seguro automáticamente.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={handleCreateInstance} className="space-y-4">
@@ -81,33 +81,23 @@ export function CreateInstanceDialog() {
 
           <div>
             <Label htmlFor="channel">Canal</Label>
-            <Select name="channel" defaultValue="baileys">
+            <Select name="channel" defaultValue="evolution">
                 <SelectTrigger id="channel">
                     <SelectValue placeholder="Selecciona un canal" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="baileys">Baileys</SelectItem>
-                    <SelectItem value="other">Otro</SelectItem>
+                    <SelectItem value="evolution">EVOLUTION</SelectItem>
+                    <SelectItem value="baileys">Baileys (otro)</SelectItem>
                 </SelectContent>
             </Select>
           </div>
-
-          <div>
-            <Label htmlFor="apiKey">Token *</Label>
-            <Input
-              id="apiKey"
-              name="apiKey"
-              placeholder="Tu token de la instancia"
-              required
-            />
-          </div>
-
+          
           <div>
             <Label htmlFor="number">Número</Label>
             <Input
               id="number"
               name="number"
-              placeholder="Número de teléfono asociado"
+              placeholder="Número de teléfono asociado (ej. 521XXXXXXXXXX)"
             />
           </div>
 

@@ -62,6 +62,9 @@ export function InstanceCard({ instance }: { instance: Instance }) {
       const result = await deleteInstance(instance.instanceName);
       if (result.success) {
         toast({ description: `Instancia "${instance.instanceName}" eliminada.` });
+        if (result.warning) {
+          toast({ variant: 'default', title: 'Advertencia', description: result.warning, duration: 5000 });
+        }
       } else {
         toast({ variant: 'destructive', title: 'Error', description: result.error });
       }
@@ -80,11 +83,11 @@ export function InstanceCard({ instance }: { instance: Instance }) {
             {status.text}
           </Badge>
         </div>
-        <CardDescription>Administra la conexión y configuración de tu instancia.</CardDescription>
+        <CardDescription>Canal: {instance.channel} | Número: {instance.number || 'N/A'}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div>
-          <Label htmlFor={`api-url-${instance.instanceName}`} className="text-xs">Tu URL de API personal</Label>
+          <Label htmlFor={`api-url-${instance.instanceName}`} className="text-xs">Tu URL de API para enviar mensajes</Label>
           <div className="flex items-center gap-2 mt-1">
             <Input id={`api-url-${instance.instanceName}`} type="text" readOnly value={apiUrl} className="text-xs h-9" />
             <Button variant="outline" size="icon" onClick={handleCopy}><Copy className="h-4 w-4" /></Button>

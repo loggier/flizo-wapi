@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { randomBytes } from 'crypto';
 import {
   createInstance as apiCreateInstance,
   fetchQrCode as apiFetchQrCode,
@@ -59,7 +60,6 @@ export async function logout() {
 export async function createInstance(formData: FormData) {
   const schema = z.object({
     instanceName: z.string().min(1, "El nombre es requerido"),
-    apiKey: z.string().min(1, "El token es requerido"),
     channel: z.string().optional(),
     number: z.string().optional(),
   });
@@ -70,26 +70,27 @@ export async function createInstance(formData: FormData) {
     return { success: false, error: parseResult.error.errors.map(e => e.message).join(', ') };
   }
   
-  const { instanceName, apiKey, channel, number } = parseResult.data;
+  const { instanceName, channel, number } = parseResult.data;
 
-  // Check if instance already exists
+  // Check if instance already exists locally
   const existingInstancesResult = await getInstances();
   if (existingInstancesResult.success && existingInstancesResult.instances.some(inst => inst.instanceName === instanceName)) {
     return { success: false, error: 'Ya existe una instancia con este nombre.' };
   }
 
-  // NOTE: We are no longer calling the Evolution API to create the instance here.
-  // We assume the instance is pre-configured and we are just adding it to the dashboard.
-  // We can try to get the status to see if it's a valid instance.
-  
+  // Generate a random token
+  const token = randomBytes(16).toString('hex');
+
   try {
-     // Let's check if we can get a connection state. This validates the instance and API key.
-     await apiGetInstanceStatus(instanceName, apiKey);
+     const apiResult = await apiCreateInstance(instanceName, token, number);
+     if (!apiResult.success) {
+       return { success: false, error: apiResult.error };
+     }
 
      const newInstance: Instance = {
        instanceName,
-       apiKey,
-       status: 'DISCONNECTED', // Start as disconnected, user will need to connect
+       apiKey: token,
+       status: 'CREATED', // Start as created, user will need to connect
        channel: channel || '',
        number: number || '',
      };
@@ -99,7 +100,7 @@ export async function createInstance(formData: FormData) {
      return { success: true, instance: newInstance };
 
   } catch (error) {
-      let errorMessage = 'No se pudo verificar la instancia con la API de Evolution. Revisa el nombre y el token.';
+      let errorMessage = 'No se pudo crear la instancia en la API de Evolution.';
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -139,7 +140,17 @@ export async function checkInstanceStatus(instanceName: string) {
 }
 
 export async function disconnectInstance(instanceName: string) {
-  const result = await apiLogoutInstance(instanceName);
+  // We need to retrieve the apiKey for the instance to disconnect
+  const instancesResult = await getInstances();
+  if (!instancesResult.success) {
+      return { success: false, error: "No se pudieron obtener las instancias locales." };
+  }
+  const instance = instancesResult.instances.find(inst => inst.instanceName === instanceName);
+  if (!instance) {
+      return { success: false, error: "Instancia no encontrada localmente." };
+  }
+
+  const result = await apiLogoutInstance(instanceName, instance.apiKey);
   if (result.success) {
     await updateInstance(instanceName, { status: 'DISCONNECTED' });
     revalidatePath('/');
@@ -149,21 +160,31 @@ export async function disconnectInstance(instanceName: string) {
 }
 
 export async function deleteInstance(instanceName: string) {
+  // We need to retrieve the apiKey for the instance to delete from API
+  const instancesResult = await getInstances();
+  let apiKey: string | undefined;
+  if (instancesResult.success) {
+    apiKey = instancesResult.instances.find(inst => inst.instanceName === instanceName)?.apiKey;
+  }
+
   // First, delete from the local file to prevent orphaned entries
   const fileDeleteResult = await fileDeleteInstance(instanceName);
   if (!fileDeleteResult.success) {
     return { success: false, error: fileDeleteResult.error };
   }
-
-  // Then, attempt to delete from the Evolution API
-  const apiDeleteResult = await apiDeleteInstance(instanceName);
   
-  revalidatePath('/');
+  revalidatePath('/'); // Revalidate immediately after local deletion
 
-  if (!apiDeleteResult.success) {
-    // Log the error but consider the primary operation (file deletion) a success for the UI
-    console.error(`La eliminación de la API falló para ${instanceName}: ${apiDeleteResult.error}`);
-    return { success: true, warning: 'Instancia eliminada del dashboard, pero no se pudo eliminar de la API de Evolution.' };
+  if (apiKey) {
+      // Then, attempt to delete from the Evolution API
+      const apiDeleteResult = await apiDeleteInstance(instanceName, apiKey);
+      if (!apiDeleteResult.success) {
+        // Log the error but consider the primary operation (file deletion) a success for the UI
+        console.error(`La eliminación de la API falló para ${instanceName}: ${apiDeleteResult.error}`);
+        return { success: true, warning: 'Instancia eliminada del dashboard, pero no se pudo eliminar de la API de Evolution.' };
+      }
+  } else {
+    console.warn(`No se encontró API key para ${instanceName}, no se eliminará de la API de Evolution.`);
   }
 
   return { success: true };

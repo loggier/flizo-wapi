@@ -1,6 +1,8 @@
-// IMPORTANT: The global API_KEY is used for instance management (create, delete).
-// Instance-specific operations might need their own keys if the setup is different.
+'use server';
+
+// The API_URL is the base URL for the Evolution API instance.
 const API_URL = process.env.EVOLUTION_API_URL;
+// The GLOBAL_API_KEY is used for instance management (create, connect).
 const GLOBAL_API_KEY = process.env.EVOLUTION_API_KEY;
 
 type EvolutionResponse = { success: true; data?: any; error?: never } | { success: false; error: string; data?: never };
@@ -57,16 +59,22 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
   return response.text();
 }
 
-// Note: createInstance is now managed manually via the form, so this is not used.
-export async function createInstance(instanceName: string): Promise<EvolutionResponse> {
+export async function createInstance(instanceName: string, token: string, number?: string): Promise<EvolutionResponse> {
   try {
+    const payload: any = {
+      instanceName,
+      token,
+      qrcode: false, // As per documentation for this flow
+      integration: "EVOLUTION",
+    };
+    if (number) {
+      payload.number = number;
+    }
+
     const data = await apiFetch('/instance/create', {
       method: 'POST',
       headers: { 'apikey': GLOBAL_API_KEY! },
-      body: JSON.stringify({
-        instanceName,
-        qrcode: true,
-      }),
+      body: JSON.stringify(payload),
     });
     return { success: true, data };
   } catch (error) {
@@ -79,8 +87,8 @@ export async function fetchQrCode(instanceName: string): Promise<{success: true,
     const data = await apiFetch(`/instance/connect/${instanceName}`, {
         headers: { 'apikey': GLOBAL_API_KEY! }
     });
-    if (data.status === 'error') {
-       return { success: false, error: data.message || 'No se pudo obtener el código QR.' };
+    if (data.status === 'error' || !data.base64) {
+       return { success: false, error: data.message || 'La API no devolvió un código QR. La instancia podría estar ya conectada.' };
     }
     return { success: true, qr: data.base64, instanceName: data.instance };
   } catch (error) {
@@ -99,11 +107,11 @@ export async function getInstanceStatus(instanceName: string, instanceApiKey: st
     }
 }
 
-export async function logoutInstance(instanceName: string): Promise<EvolutionResponse> {
+export async function logoutInstance(instanceName: string, instanceApiKey: string): Promise<EvolutionResponse> {
   try {
     await apiFetch(`/instance/logout/${instanceName}`, { 
         method: 'DELETE',
-        headers: { 'apikey': GLOBAL_API_KEY! }
+        headers: { 'apikey': instanceApiKey }
     });
     return { success: true };
   } catch (error) {
@@ -111,11 +119,11 @@ export async function logoutInstance(instanceName: string): Promise<EvolutionRes
   }
 }
 
-export async function deleteInstance(instanceName: string): Promise<EvolutionResponse> {
+export async function deleteInstance(instanceName: string, instanceApiKey: string): Promise<EvolutionResponse> {
   try {
     await apiFetch(`/instance/delete/${instanceName}`, { 
         method: 'DELETE',
-        headers: { 'apikey': GLOBAL_API_KEY! }
+        headers: { 'apikey': instanceApiKey }
     });
     return { success: true };
   } catch (error) {
@@ -123,11 +131,11 @@ export async function deleteInstance(instanceName: string): Promise<EvolutionRes
   }
 }
 
-export async function sendMessage(instanceName: string, number: string, text: string): Promise<EvolutionResponse> {
+export async function sendMessage(instanceName: string, apiKey: string, number: string, text: string): Promise<EvolutionResponse> {
     try {
         const data = await apiFetch(`/message/sendText/${instanceName}`, {
             method: 'POST',
-            headers: { 'apikey': GLOBAL_API_KEY! }, // Should use instance-specific key
+            headers: { 'apikey': apiKey },
             body: JSON.stringify({
                 number,
                 options: {

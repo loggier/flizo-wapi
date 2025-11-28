@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const sendMessageResult = await apiSendMessage(instanceName, number, text);
+    const sendMessageResult = await apiSendMessage(instanceName, apiKey, number, text);
 
     if (sendMessageResult.success) {
       return NextResponse.json({ success: true, data: sendMessageResult.data });

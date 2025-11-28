@@ -109,7 +109,7 @@ export function QrDialog({ instanceName, onConnected, children }: PropsWithChild
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Conectar Instancia: {instanceName}</DialogTitle>
           <DialogDescription>

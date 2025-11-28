@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "login-background",
+      "description": "Abstract background for the login page.",
+      "imageUrl": "https://images.unsplash.com/photo-1738082956213-aa554ba67bda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhYnN0cmFjdCUyMG5ldHdvcmt8ZW58MHx8fHwxNzY0MjIzNjYxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract network"
+    }
+  ]
 }

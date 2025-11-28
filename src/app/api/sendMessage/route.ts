@@ -1,3 +1,5 @@
+'use server';
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { getInstances } from '@/app/actions';
 import { sendMessage as apiSendMessage } from '@/lib/evolution';
@@ -47,13 +49,13 @@ export async function POST(request: NextRequest) {
     // Correct payload structure according to Evolution API documentation
     const payload = {
         number,
-        textMessage: {
-          text
-        },
         options: {
           delay: 1200,
-          presence: 'composing'
-        }
+          presence: 'composing',
+        },
+        textMessage: {
+          text,
+        },
     };
 
     const sendMessageResult = await apiSendMessage(instanceName, instance.apiKey, payload);

@@ -50,8 +50,8 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
   const profileInitial = (instance.profileName || instance.instanceName).charAt(0).toUpperCase();
 
   const apiUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}`
-    : `/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}`;
+    ? `${window.location.origin}/api/sendMessage?instance=${instance.instanceName}&number=NUMBER&text=TEXT`
+    : `/api/sendMessage?instance=${instance.instanceName}&number=NUMBER&text=TEXT`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(apiUrl);

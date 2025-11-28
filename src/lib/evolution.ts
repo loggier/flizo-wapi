@@ -22,16 +22,34 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
   const contentType = response.headers.get('content-type');
   const isJson = contentType && contentType.includes('application/json');
 
+  // Handle non-successful responses
   if (!response.ok) {
     let errorMessage = `Error de API (${response.status})`;
     if (isJson) {
-      const errorJson = await response.json();
-      errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+      try {
+        const errorJson = await response.json();
+        // Evolution API often returns errors in a "message" property, or an array of messages.
+        if (errorJson.message) {
+            errorMessage = Array.isArray(errorJson.message) ? errorJson.message.join(', ') : errorJson.message;
+        } else if (errorJson.error) {
+            errorMessage = errorJson.error;
+        } else {
+            errorMessage = JSON.stringify(errorJson);
+        }
+      } catch (e) {
+        // Not a JSON response, fall back to text.
+        errorMessage = await response.text();
+      }
     } else {
       const errorText = await response.text();
       errorMessage = errorText || response.statusText;
     }
     throw new Error(errorMessage);
+  }
+  
+  // Handle empty successful responses (e.g., DELETE returning 204 No Content)
+  if (response.status === 204 || !contentType) {
+    return null;
   }
 
   if (isJson) {

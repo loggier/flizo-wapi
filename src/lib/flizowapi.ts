@@ -1,9 +1,9 @@
 'use server';
 
 // The API_URL is the base URL for the FlizoWapi API instance.
-const API_URL = process.env.FLIZOWAPI_API_URL;
+const API_URL = process.env.EVOLUTION_API_URL;
 // The GLOBAL_API_KEY is used for instance management (create, connect).
-const GLOBAL_API_KEY = process.env.FLIZOWAPI_API_KEY;
+const GLOBAL_API_KEY = process.env.EVOLUTION_API_KEY;
 
 type FlizoWapiResponse = { success: true; data?: any; error?: never } | { success: false; error: string; data?: never };
 
@@ -176,5 +176,3 @@ export async function fetchInstances(): Promise<FlizoWapiResponse> {
     return { success: false, error: error instanceof Error ? error.message : 'No se pudieron obtener las instancias de la API' };
   }
 }
-
-    

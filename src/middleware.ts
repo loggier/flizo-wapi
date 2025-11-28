@@ -4,8 +4,8 @@ const publicRoutes = ['/login'];
 
 // Check if essential environment variables are set
 const areVarsSet = 
-  process.env.FLIZOWAPI_API_URL &&
-  process.env.FLIZOWAPI_API_KEY &&
+  process.env.EVOLUTION_API_URL &&
+  process.env.EVOLUTION_API_KEY &&
   process.env.AUTH_USER &&
   process.env.AUTH_PASSWORD &&
   process.env.AUTH_SECRET;

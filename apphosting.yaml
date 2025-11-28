@@ -6,10 +6,10 @@ runConfig:
   # more instances in response to increased traffic.
   maxInstances: 1
 secretEnvironmentVariables:
-  - secret: FLIZOWAPI_API_URL
-    key: FLIZOWAPI_API_URL
-  - secret: FLIZOWAPI_API_KEY
-    key: FLIZOWAPI_API_KEY
+  - secret: EVOLUTION_API_URL
+    key: EVOLUTION_API_URL
+  - secret: EVOLUTION_API_KEY
+    key: EVOLUTION_API_KEY
   - secret: AUTH_USER
     key: AUTH_USER
   - secret: AUTH_PASSWORD

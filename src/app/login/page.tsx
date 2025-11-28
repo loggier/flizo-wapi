@@ -87,7 +87,7 @@ export default function LoginPage() {
             <AlertDescription>
               Para comenzar, crea un archivo <code className="font-mono text-sm font-semibold">.env.local</code> en el directorio raíz y añade las siguientes variables:
               <pre className="mt-2 rounded-md bg-muted p-2 text-xs font-mono">
-                {`FLIZOWAPI_API_URL=http://your_api_ip:port\nFLIZOWAPI_API_KEY=your_global_api_key\nAUTH_USER=your_username\nAUTH_PASSWORD=your_password\nAUTH_SECRET=a_secure_random_string_32_chars`}
+                {`EVOLUTION_API_URL=http://your_api_ip:port\nEVOLUTION_API_KEY=your_global_api_key\nAUTH_USER=your_username\nAUTH_PASSWORD=your_password\nAUTH_SECRET=a_secure_random_string_32_chars`}
               </pre>
             </AlertDescription>
           </Alert>

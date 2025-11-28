@@ -12,10 +12,9 @@ import {
   logoutInstance as apiLogoutInstance,
   deleteInstance as apiDeleteInstance,
   fetchInstances as apiFetchInstances,
-} from '@/lib/evolution';
+} from '@/lib/flizowapi';
 import { encrypt } from '@/lib/session';
 import type { Instance, ApiInstance, InstanceStatus } from '@/lib/definitions';
-import { getFlizoWapiHelp as genAiGetHelp } from '@/ai/flows/evolution-api-tool-prompts';
 
 
 // --- FILE SYSTEM ACTIONS FOR INSTANCES ---
@@ -311,22 +310,6 @@ export async function deleteInstance(instanceName: string) {
   return { success: true };
 }
 
-
-// --- GenAI ACTION ---
-
-export async function getApiHelp(feature: string) {
-  if (!feature) {
-    return { success: false, error: "Por favor, proporciona una feature para obtener ayuda." };
-  }
-
-  try {
-    const result = await genAiGetHelp({ feature });
-    return { success: true, helpText: result.helpText };
-  } catch (error) {
-    console.error("Error de ayuda de GenAI:", error);
-    return { success: false, error: "No se pudo obtener ayuda del asistente de IA." };
-  }
-}
 function onRefresh() {
   revalidatePath('/');
 }

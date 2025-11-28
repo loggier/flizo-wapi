@@ -1,5 +1,4 @@
 import { CreateInstanceDialog } from './create-instance-dialog';
-import { HelpDialog } from './help-dialog';
 import { LogoutButton } from './logout-button';
 import { Button } from '../ui/button';
 import { RefreshCw } from 'lucide-react';
@@ -18,7 +17,6 @@ export function Header({ onRefresh }: HeaderProps) {
         <Button variant="outline" size="icon" onClick={onRefresh} aria-label="Refrescar instancias">
           <RefreshCw className="h-4 w-4" />
         </Button>
-        <HelpDialog />
         <CreateInstanceDialog onRefresh={onRefresh} />
         <LogoutButton />
       </div>

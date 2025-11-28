@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useRef, type PropsWithChildren } from 'react';
-import { useFormStatus } from 'react-dom';
-import { sendMessage } from '@/app/actions';
+import { useState, useRef, type PropsWithChildren, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,13 +18,12 @@ import { Loader2, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Instance } from '@/lib/definitions';
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    <Button type="submit" disabled={isPending}>
+      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       <Send className="mr-2 h-4 w-4" />
-      {pending ? 'Enviando...' : 'Enviar Mensaje'}
+      {isPending ? 'Enviando...' : 'Enviar Mensaje'}
     </Button>
   );
 }
@@ -37,29 +34,51 @@ interface SendMessageDialogProps {
 
 export function SendMessageDialog({ instance, children }: PropsWithChildren<SendMessageDialogProps>) {
   const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
 
-  const handleSendMessage = async (formData: FormData) => {
-    formData.append('instanceName', instance.instanceName);
-    formData.append('apiKey', instance.apiKey);
-    
-    const result = await sendMessage(formData);
+  const handleSendMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
 
-    if (result?.success) {
-      toast({
-        title: 'Éxito',
-        description: 'Mensaje enviado a la cola para su procesamiento.',
-      });
-      setOpen(false);
-      formRef.current?.reset();
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error al enviar mensaje',
-        description: result?.error || 'No se pudo enviar el mensaje.',
-      });
+    const formData = new FormData(event.currentTarget);
+    const number = formData.get('number') as string;
+    const message = formData.get('message') as string;
+    
+    try {
+        const response = await fetch(`/api/sendMessage?instance=${instance.instanceName}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ number: number, text: message }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            toast({
+                title: 'Éxito',
+                description: 'Mensaje enviado a la cola para su procesamiento.',
+            });
+            setOpen(false);
+            formRef.current?.reset();
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error al enviar mensaje',
+                description: result?.error || 'No se pudo enviar el mensaje.',
+            });
+        }
+    } catch (e) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Red',
+            description: 'No se pudo conectar con el servidor para enviar el mensaje.',
+        });
     }
+
+
+    setIsPending(false);
   };
 
   return (
@@ -74,7 +93,7 @@ export function SendMessageDialog({ instance, children }: PropsWithChildren<Send
             Envia un mensaje desde la instancia <span className="font-bold">{instance.instanceName}</span>.
           </DialogDescription>
         </DialogHeader>
-        <form ref={formRef} action={handleSendMessage} className="space-y-4">
+        <form ref={formRef} onSubmit={handleSendMessage} className="space-y-4">
             <div>
                 <Label htmlFor="number">Número de Destino</Label>
                 <Input
@@ -97,7 +116,7 @@ export function SendMessageDialog({ instance, children }: PropsWithChildren<Send
             </div>
 
             <DialogFooter>
-                <SubmitButton />
+                <SubmitButton isPending={isPending} />
             </DialogFooter>
         </form>
       </DialogContent>

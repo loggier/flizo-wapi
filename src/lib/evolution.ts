@@ -39,17 +39,28 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
           errorMessage = errorJson.error;
         } else if (typeof errorJson.response?.message === 'string') {
           errorMessage = errorJson.response.message;
-        } else {
+        } else if (errorJson.data?.message) {
+          errorMessage = errorJson.data.message;
+        }
+        else {
           // Fallback to stringifying the whole object if no specific message is found
           errorMessage = JSON.stringify(errorJson);
         }
       } catch (e) {
         // If parsing JSON fails, fallback to the raw text response
-        errorMessage = await response.text();
+        try {
+          errorMessage = await response.text();
+        } catch (readError) {
+           errorMessage = response.statusText;
+        }
       }
     } else {
-      const errorText = await response.text();
-      errorMessage = errorText || response.statusText;
+       try {
+        const errorText = await response.text();
+        errorMessage = errorText || response.statusText;
+       } catch(e) {
+         errorMessage = response.statusText;
+       }
     }
     throw new Error(errorMessage);
   }
@@ -140,21 +151,12 @@ export async function deleteInstance(instanceName: string, instanceApiKey: strin
   }
 }
 
-export async function sendMessage(instanceName: string, apiKey: string, number: string, text: string): Promise<EvolutionResponse> {
+export async function sendMessage(instanceName: string, apiKey: string, payload: any): Promise<EvolutionResponse> {
     try {
         const data = await apiFetch(`/message/sendText/${instanceName}`, {
             method: 'POST',
             headers: { 'apikey': apiKey },
-            body: JSON.stringify({
-                number: number,
-                options: {
-                    delay: 1200,
-                    presence: 'composing'
-                },
-                textMessage: {
-                    text: text
-                }
-            })
+            body: JSON.stringify(payload)
         });
         return { success: true, data };
     } catch (error) {

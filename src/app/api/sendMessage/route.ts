@@ -7,13 +7,12 @@ export async function POST(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const instanceName = searchParams.get('instance');
   
-  // Get number and message from the POST body
   const body = await request.json();
-  const { number, message: text } = body;
+  const { number, text } = body;
 
   if (!instanceName || !number || !text) {
     return NextResponse.json(
-      { success: false, error: 'Faltan parámetros requeridos: instance en la URL y number, message en el body.' },
+      { success: false, error: 'Faltan parámetros requeridos: instance en la URL y number, text en el body.' },
       { status: 400 }
     );
   }
@@ -40,15 +39,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sendMessageResult = await apiSendMessage(instanceName, instance.apiKey, number, text);
+    const payload = {
+        number,
+        textMessage: {
+          text
+        },
+        options: {
+          delay: 1200,
+          presence: 'composing'
+        }
+    };
+
+    const sendMessageResult = await apiSendMessage(instanceName, instance.apiKey, payload);
 
     if (sendMessageResult.success) {
       return NextResponse.json({ success: true, data: sendMessageResult.data });
     } else {
-      // Pass the specific error from the API call
       return NextResponse.json(
         { success: false, error: sendMessageResult.error },
-        { status: 400 } // Use 400 for Bad Request as it's a common cause
+        { status: 400 }
       );
     }
   } catch (error) {

@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { QrCode, LogOut, Trash2, Copy, Zap, XCircle, Loader2, MessageSquareText, Users, AtSign } from 'lucide-react';
+import { QrCode, LogOut, Trash2, Copy, Zap, XCircle, Loader2, MessageSquareText, Users, AtSign, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { QrDialog } from './qr-dialog';
+import { SendMessageDialog } from './send-message-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,8 +50,8 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
   const profileInitial = (instance.profileName || instance.instanceName).charAt(0).toUpperCase();
 
   const apiUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}&number=...&message=...`
-    : `/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}&number=...&message=...`;
+    ? `${window.location.origin}/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}`
+    : `/api/sendMessage?instance=${instance.instanceName}&key=${instance.apiKey}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(apiUrl);
@@ -135,6 +136,13 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
         </div>
       </CardContent>
       <CardFooter className="justify-end gap-2">
+        {instance.status === 'CONNECTED' && (
+          <SendMessageDialog instance={instance}>
+            <Button variant="outline" size="icon" aria-label="Enviar Mensaje de Prueba">
+              <Send className="h-4 w-4" />
+            </Button>
+          </SendMessageDialog>
+        )}
         {instance.status !== 'CONNECTED' && (
           <QrDialog instanceName={instance.instanceName} onConnected={onRefresh}>
             <Button variant="outline"><QrCode className="mr-2 h-4 w-4" />Conectar</Button>
@@ -149,7 +157,7 @@ export function InstanceCard({ instance, onRefresh }: InstanceCardProps) {
         
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="icon" disabled={isDeleting}>
+            <Button variant="destructive" size="icon" disabled={isDeleting} aria-label="Eliminar Instancia">
               {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             </Button>
           </AlertDialogTrigger>

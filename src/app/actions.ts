@@ -12,6 +12,7 @@ import {
   logoutInstance as apiLogoutInstance,
   deleteInstance as apiDeleteInstance,
   fetchInstances as apiFetchInstances,
+  sendMessage as apiSendMessage,
 } from '@/lib/evolution';
 import { encrypt } from '@/lib/session';
 import type { Instance, ApiInstance, InstanceStatus } from '@/lib/definitions';
@@ -296,7 +297,7 @@ export async function deleteInstance(instanceName: string) {
     return { success: false, error: fileDeleteResult.error };
   }
   
-  revalidatePath('/'); 
+  onRefresh(); 
 
   if (apiKey) {
       const apiDeleteResult = await apiDeleteInstance(instanceName, apiKey);
@@ -309,6 +310,31 @@ export async function deleteInstance(instanceName: string) {
   }
 
   return { success: true };
+}
+
+export async function sendMessage(formData: FormData) {
+  const schema = z.object({
+    instanceName: z.string(),
+    apiKey: z.string(),
+    number: z.string().min(10, "El número debe tener al menos 10 dígitos."),
+    message: z.string().min(1, "El mensaje no puede estar vacío."),
+  });
+
+  const parseResult = schema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parseResult.success) {
+    return { success: false, error: parseResult.error.errors.map(e => e.message).join(', ') };
+  }
+
+  const { instanceName, apiKey, number, message } = parseResult.data;
+
+  const result = await apiSendMessage(instanceName, apiKey, number, message);
+
+  if (result.success) {
+    return { success: true };
+  } else {
+    return { success: false, error: result.error };
+  }
 }
 
 
